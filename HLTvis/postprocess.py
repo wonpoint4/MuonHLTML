@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_curve, roc_auc_score
 
 def maskTarget(x, y):
     y = np.reshape(y, (-1,1))
@@ -13,3 +14,12 @@ def maskTarget(x, y):
     dfBkg = dfBkg.drop([0],axis=1)
 
     return dfSig.values, dfBkg.values
+
+def calROC(dTrainPredict, dTestPredict, y_train, y_test):
+    fpr_Train, tpr_Train, thresholds = roc_curve(y_train, dTrainPredict)
+    AUC_Train = roc_auc_score(y_train, dTrainPredict)
+
+    fpr_Test, tpr_Test, thresholds = roc_curve(y_test, dTestPredict)
+    AUC_Test = roc_auc_score(y_test, dTestPredict)
+
+    return fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test
