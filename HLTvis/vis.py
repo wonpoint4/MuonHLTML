@@ -1,5 +1,7 @@
 import sys
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from HLTvis import postprocess
 
@@ -27,15 +29,30 @@ def scatter2dSB(sig, bkg, plotname):
     return
 
 def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
+    plt.figure(figsize=(6,4))
     plt.plot(fpr_Train, tpr_Train, color='r', label='Train ROC (AUC = %.4f)' % AUC_Train)
     plt.plot(fpr_Test, tpr_Test, color='b', label='Test ROC (AUC = %.4f)' % AUC_Test)
     plt.xscale('log')
     plt.xlim(xmin=1e-4, xmax=1.0)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC curve, '+plotname)
+    plt.title(plotname)
     plt.legend(loc='lower right')
     plt.grid()
+
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+
+    return
+
+def drawScore(dSigPredict, dBkgPredict):
+    plt.hist(dSigPredict, 100, normed=True, alpha=0.5, label='Sig', range=(0,1), color='b')
+    plt.hist(dBkgPredict, 100, normed=True, alpha=0.5, label='Bkg', range=(0,1), color='r')
+    plt.grid()
+    plt.yscale('log')
+    plt.title(plotname)
+    plt.xlabel('Output')
+    plt.ylabel('Evts/0.01')
+    plt.legend(loc='upper right')
 
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
