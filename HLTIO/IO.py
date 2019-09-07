@@ -340,9 +340,10 @@ def readSeedNp(path):
     filename = path.replace('.root','')
     checkfile = Path(filename+'iterL3OISeedsFromL2Muons.npy')
     try:
-        checkfile.resolve(strict=True)
-    except: FileNotFoundError:
-        seeds = IO.readSeed(path)
+        checkfile.resolve()
+    except FileNotFoundError:
+        seeds = readSeed(path)
+        
         return seeds
     else:
         iterL3OISeedsFromL2Muons = np.load(filename+'iterL3OISeedsFromL2Muons.npy')
@@ -352,6 +353,7 @@ def readSeedNp(path):
         iter0IterL3FromL1MuonPixelSeedsFromPixelTracks = np.load(filename+'iter0IterL3FromL1MuonPixelSeedsFromPixelTracks.npy')
         iter2IterL3FromL1MuonPixelSeeds = np.load(filename+'iter2IterL3FromL1MuonPixelSeeds.npy')
         iter3IterL3FromL1MuonPixelSeeds = np.load(filename+'iter3IterL3FromL1MuonPixelSeeds.npy')
+
         return iterL3OISeedsFromL2Muons, iter0IterL3MuonPixelSeedsFromPixelTracks, iter2IterL3MuonPixelSeeds, iter3IterL3MuonPixelSeeds, \
         iter0IterL3FromL1MuonPixelSeedsFromPixelTracks, iter2IterL3FromL1MuonPixelSeeds, iter3IterL3FromL1MuonPixelSeeds
 

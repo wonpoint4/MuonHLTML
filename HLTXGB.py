@@ -27,7 +27,7 @@ def doXGB(seed,seedname):
     dbkg = xgb.DMatrix(bkg, label=np.full((bkg.shape[0],1), 0))
     evallist = [(dtest, 'eval'), (dtrain, 'train')]
 
-    param = {'max_depth':7, 'eta':0.1, 'gamma':10, 'objective':'binary:logistic', 'subsample':0.5, 'eval_metric':'aucpr','alpha':0.5}
+    param = {'max_depth':6, 'eta':0.1, 'gamma':10, 'objective':'binary:logistic', 'subsample':0.5, 'eval_metric':'aucpr'}
     param['min_child_weight'] = float(fake.sum(axis=0))/100.
     param['scale_pos_weight'] = classWeight
     param['tree_method'] = 'exact'
