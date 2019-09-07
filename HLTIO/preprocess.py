@@ -31,9 +31,11 @@ def dfSigBkg(df):
 
     return df, fake
 
-def stdTransform(x_train, x_test):
+def stdTransform(x_train, x_test, sig, bkg):
     Transformer = preprocessing.StandardScaler()
     x_train = Transformer.fit_transform(x_train)
     x_test = Transformer.transform(x_test)
+    sig = Transformer.transform(sig)
+    bkg = Transformer.transform(bkg)
 
-    return x_train, x_test
+    return x_train, x_test, sig, bkg
