@@ -4,6 +4,7 @@ import ROOT
 from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 from scipy import sparse
+from pathlib import Path
 
 # IO (Require ROOT version > 6.14)
 
@@ -323,8 +324,36 @@ def readSeed(path):
     print(iter2IterL3FromL1MuonPixelSeeds.shape)
     print(iter3IterL3FromL1MuonPixelSeeds.shape)
 
+    filename = path.replace('.root','')
+    np.save(filename+'iterL3OISeedsFromL2Muons',iterL3OISeedsFromL2Muons)
+    np.save(filename+'iter0IterL3MuonPixelSeedsFromPixelTracks',iter0IterL3MuonPixelSeedsFromPixelTracks)
+    np.save(filename+'iter2IterL3MuonPixelSeeds',iter2IterL3MuonPixelSeeds)
+    np.save(filename+'iter3IterL3MuonPixelSeeds',iter3IterL3MuonPixelSeeds)
+    np.save(filename+'iter0IterL3FromL1MuonPixelSeedsFromPixelTracks',iter0IterL3FromL1MuonPixelSeedsFromPixelTracks)
+    np.save(filename+'iter2IterL3FromL1MuonPixelSeeds',iter2IterL3FromL1MuonPixelSeeds)
+    np.save(filename+'iter3IterL3FromL1MuonPixelSeeds',iter3IterL3FromL1MuonPixelSeeds)
+
     return iterL3OISeedsFromL2Muons, iter0IterL3MuonPixelSeedsFromPixelTracks, iter2IterL3MuonPixelSeeds, iter3IterL3MuonPixelSeeds, \
     iter0IterL3FromL1MuonPixelSeedsFromPixelTracks, iter2IterL3FromL1MuonPixelSeeds, iter3IterL3FromL1MuonPixelSeeds
+
+def readSeedNp(path):
+    filename = path.replace('.root','')
+    checkfile = Path(filename+'iterL3OISeedsFromL2Muons.npy')
+    try:
+        checkfile.resolve(strict=True)
+    except: FileNotFoundError:
+        seeds = IO.readSeed(path)
+        return seeds
+    else:
+        iterL3OISeedsFromL2Muons = np.load(filename+'iterL3OISeedsFromL2Muons.npy')
+        iter0IterL3MuonPixelSeedsFromPixelTracks = np.load(filename+'iter0IterL3MuonPixelSeedsFromPixelTracks.npy')
+        iter2IterL3MuonPixelSeeds = np.load(filename+'iter2IterL3MuonPixelSeeds.npy')
+        iter3IterL3MuonPixelSeeds = np.load(filename+'iter3IterL3MuonPixelSeeds.npy')
+        iter0IterL3FromL1MuonPixelSeedsFromPixelTracks = np.load(filename+'iter0IterL3FromL1MuonPixelSeedsFromPixelTracks.npy')
+        iter2IterL3FromL1MuonPixelSeeds = np.load(filename+'iter2IterL3FromL1MuonPixelSeeds.npy')
+        iter3IterL3FromL1MuonPixelSeeds = np.load(filename+'iter3IterL3FromL1MuonPixelSeeds.npy')
+        return iterL3OISeedsFromL2Muons, iter0IterL3MuonPixelSeedsFromPixelTracks, iter2IterL3MuonPixelSeeds, iter3IterL3MuonPixelSeeds, \
+        iter0IterL3FromL1MuonPixelSeedsFromPixelTracks, iter2IterL3FromL1MuonPixelSeeds, iter3IterL3FromL1MuonPixelSeeds
 
 def dumpsvm(x, y, filename):
     dump_svmlight_file(x, y, filename, zero_based=True)

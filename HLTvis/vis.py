@@ -52,7 +52,7 @@ def drawScore(dSigPredict, dBkgPredict, plotname):
     # plt.yscale('log')
     plt.title(plotname)
     plt.xlabel('Output')
-    plt.ylabel('Evts/0.01')
+    plt.ylabel('seeds(normed)/0.01')
     plt.legend(loc='upper right')
 
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
