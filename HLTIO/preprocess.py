@@ -21,6 +21,7 @@ def dfSigBkg(df):
     fake = ( df.iloc[:,[27]]==-1. ).all(axis=1)
     df_sig = df[ ~fake ]
     df_bkg = df[ fake ]
+    print(r'nSig: %d, nBkg: %d' % (df_sig.shape[0],df_bkg.shape[0]))
 
     if df_bkg.shape[0] > 50000: df_bkg = df_bkg.sample(50000)
     if df_sig.shape[0] > 50000: df_sig = df_sig.sample(50000)
