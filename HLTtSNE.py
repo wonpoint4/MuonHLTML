@@ -21,9 +21,11 @@ def doTSNE(seed,seedname,filename):
         seed['tsne-x'] = tsne_result[:,0]
         seed['tsne-y'] = tsne_result[:,1]
 
+        seed = pd.concat([seed,fake], axis=1)
         seed.to_csv(checkfile,index=None,header=True)
     else:
         seed = pd.read_csv(checkfile)
+        fake = seed.iloc[:,-1]
 
     # vis.scatter2dSB(seed[~fake][['tsne-x','tsne-y']].values, seed[fake][['tsne-x','tsne-y']].values, 't-sne_'+seedname)
     vis.hist2dSig(seed[~fake][['tsne-x','tsne-y']].values,'t-sneSig_'+filename+'_'+seedname)
