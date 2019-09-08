@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 from HLTvis import postprocess
 
 def scatter2d(x, y, plotname):
@@ -50,8 +51,14 @@ def hist2dBkg(data, plotname):
 
 def hist2dOverlay(dataSig, dataBkg, plotname):
     plt.figure(figsize=(6,4))
-    plt.hist2d(dataSig[:,0], dataSig[:,1], bins=100, cmap=plt.cm.Blues, alpha=0.3)
-    plt.hist2d(dataBkg[:,0], dataBkg[:,1], bins=100, cmap=plt.cm.Reds, alpha=0.3)
+    cmapBlue = plt.cm.Blues(np.arange(plt.cm.Blues.N))
+    cmapBlue[:,-1] = np.linspace(0, 0.8, plt.cm.Blues.N)
+    cmapBlue = ListedColormap(cmapBlue)
+    cmapRed = plt.cm.Reds(np.arange(plt.cm.Reds.N))
+    cmapRed[:,-1] = np.linspace(0, 0.8, plt.cm.Reds.N)
+    cmapRed = ListedColormap(cmapRed)
+    plt.hist2d(dataBkg[:,0], dataBkg[:,1], bins=100, cmap=cmapRed, normed=True)
+    plt.hist2d(dataSig[:,0], dataSig[:,1], bins=100, cmap=cmapBlue, normed=True)
     plt.colorbar()
     plt.draw()
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
