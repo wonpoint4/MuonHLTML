@@ -28,11 +28,23 @@ def scatter2dSB(sig, bkg, plotname):
 
     return
 
-def hist2d(data, plotname):
+def hist2dSig(data, plotname):
     plt.figure(figsize=(6,4))
     plt.hist2d(data[:,0], data[:,1], bins=100)
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.colorbar()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight',cmap=plt.cm.Blues)
+
+    return
+
+def hist2dBkg(data, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(data[:,0], data[:,1], bins=100)
+    plt.draw()
+    plt.colorbar()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight',cmap=plt.cm.Reds)
+
+    return
 
 def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
     plt.figure(figsize=(6,4))
