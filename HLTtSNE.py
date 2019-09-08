@@ -5,20 +5,30 @@ from HLTIO import IO
 from HLTIO import preprocess
 from HLTvis import vis
 from sklearn.manifold import TSNE
+from pathlib import Path
 
 def doTSNE(seed,seedname):
-    seed = pd.DataFrame(seed)
-    seed, fake = preprocess.dfSigBkg(seed)
-    seed.drop(seed.columns[[1,3,26]],axis=1,inplace=True)
+    checkfile = Path('data/t-sne_'+seedname+'.csv')
+    try:
+        checkfile.resolve()
+    except FileNotFoundError:
+        seed = pd.DataFrame(seed)
+        seed, fake = preprocess.dfSigBkg(seed)
+        seed.drop(seed.columns[[1,3,26]],axis=1,inplace=True)
 
-    tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=500)
-    tsne_result = tsne.fit_transform(seed)
-    seed['tsne-x'] = tsne_result[:,0]
-    seed['tsne-y'] = tsne_result[:,1]
+        tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=500)
+        tsne_result = tsne.fit_transform(seed)
+        seed['tsne-x'] = tsne_result[:,0]
+        seed['tsne-y'] = tsne_result[:,1]
+
+        seed.to_csv(checkfile,index=None,header=True)
+    else:
+        seed = pd.read_csv(checkfile)
 
     # vis.scatter2dSB(seed[~fake][['tsne-x','tsne-y']].values, seed[fake][['tsne-x','tsne-y']].values, 't-sne_'+seedname)
     vis.hist2dSig(seed[~fake][['tsne-x','tsne-y']].values,'t-sneSig_'+seedname)
     vis.hist2dBkg(seed[fake][['tsne-x','tsne-y']].values,'t-sneBkg_'+seedname)
+    vis.hist2dOverlay(seed[~fake][['tsne-x','tsne-y']].values,seed[fake][['tsne-x','tsne-y']].values,'t-sneOverlay_'+seedname)
 
     return
 

@@ -30,19 +30,32 @@ def scatter2dSB(sig, bkg, plotname):
 
 def hist2dSig(data, plotname):
     plt.figure(figsize=(6,4))
-    plt.hist2d(data[:,0], data[:,1], bins=100)
-    plt.draw()
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Blues)
     plt.colorbar()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight',cmap=plt.cm.Blues)
+    plt.draw()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
 def hist2dBkg(data, plotname):
     plt.figure(figsize=(6,4))
-    plt.hist2d(data[:,0], data[:,1], bins=100)
-    plt.draw()
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Reds)
     plt.colorbar()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight',cmap=plt.cm.Reds)
+    plt.draw()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def hist2dOverlay(dataSig, dataBkg, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(dataSig[:,0], dataSig[:,1], bins=100, cmap=plt.cm.Blues, alpha=0.3)
+    plt.hist2d(dataBkg[:,0], dataBkg[:,1], bins=100, cmap=plt.cm.Reds, alpha=0.3)
+    plt.colorbar()
+    plt.draw()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
