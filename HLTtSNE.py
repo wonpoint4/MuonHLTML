@@ -17,11 +17,13 @@ def doTSNE(seed,seedname):
     seed['tsne-y'] = tsne_result[:,1]
 
     vis.scatter2dSB(seed[~fake][['tsne-x','tsne-y']].values, seed[fake][['tsne-x','tsne-y']].values, 't-sne_'+seedname)
+    vis.hist2d(seed[~fake][['tsne-x','tsne-y']].values,'t-sneSig_'+seedname)
+    vis.hist2d(seed[fake][['tsne-x','tsne-y']].values,'t-sneBkg_'+seedname)
 
     return
 
 # seeds = IO.readSeed("./data/ntuple_PU50.root")
-seeds = IO.readSeed("./data/ntuple_HLTPhysics2018C_Run319941_RAWAOD.root")
+seeds = IO.readSeed("./data/ntuple_SingleMuon2018C_Run319941_NMu1_Pt27to1000000000_PU40to60_RAWAOD.root")
 
 doTSNE(seeds[0],"iterL3OISeedsFromL2Muons")
 doTSNE(seeds[1],"iter0IterL3MuonPixelSeedsFromPixelTracks")

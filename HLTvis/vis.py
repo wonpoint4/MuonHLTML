@@ -28,6 +28,12 @@ def scatter2dSB(sig, bkg, plotname):
 
     return
 
+def hist2d(data, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(data[:,0], data[:,1], bins=100)
+    plt.draw()
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+
 def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
     plt.figure(figsize=(6,4))
     plt.plot(fpr_Train, 1-tpr_Train, color='r', label='Train ROC (AUC = %.4f)' % AUC_Train)
