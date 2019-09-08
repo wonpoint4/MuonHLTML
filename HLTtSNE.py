@@ -34,7 +34,7 @@ def doTSNE(seed,seedname,filename):
 
 # seeds = IO.readSeed("./data/ntuple_PU50.root")
 filename = 'ntuple_SingleMuon2018C_Run319941_NMu1_Pt27to1000000000_PU40to60_RAWAOD'
-seeds = IO.readSeedNp("./data/+"+filename+"+.root")
+seeds = IO.readSeedNp("./data/"+filename+"+.root")
 
 doTSNE(seeds[0],"iterL3OISeedsFromL2Muons",filename)
 doTSNE(seeds[1],"iter0IterL3MuonPixelSeedsFromPixelTracks",filename)
