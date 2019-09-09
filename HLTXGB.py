@@ -6,6 +6,9 @@ from HLTIO import preprocess
 from HLTvis import vis
 from HLTvis import postprocess
 import xgboost as xgb
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import os
 gpu_id = '0' #sys.argv[1]
@@ -44,6 +47,10 @@ def doXGB(seed,seedname):
 
     vis.drawScore(dSigPredict, dBkgPredict, 'BDTscore_'+seedname)
     vis.drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, 'ROC_'+seedname)
+
+    fig = plt.figure(figsize=(6,4))
+    xgb.plot_importance(bst)
+    plt.savefig('./plot/importance_'+seedname+'.png', dpi=300, bbox_inches='tight')
 
     return
 

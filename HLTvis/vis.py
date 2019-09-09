@@ -58,6 +58,7 @@ def hist2dOverlay(dataSig, dataBkg, plotname):
     cmapRed[:,-1] = np.linspace(0, 0.8, plt.cm.Reds.N)
     cmapRed = ListedColormap(cmapRed)
     plt.hist2d(dataBkg[:,0], dataBkg[:,1], bins=100, cmap=cmapRed, normed=True)
+    plt.colorbar()
     plt.hist2d(dataSig[:,0], dataSig[:,1], bins=100, cmap=cmapBlue, normed=True)
     plt.colorbar()
     plt.draw()
