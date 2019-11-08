@@ -5,8 +5,24 @@ from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 from scipy import sparse
 from pathlib import Path
+import math
 
 # IO (Require ROOT version > 6.14)
+def dR(eta1, phi1, eta2, phi2):
+    dr = math.sqrt((eta1-eta2)*(eta1-eta2) + (phi1-phi2)*(phi1-phi2))
+    return dr
+
+def setEtaPhi(x, y, z):
+    perp = math.sqrt(x*x + y*y)
+    eta = np.arcsinh(z/perp)
+    phi = np.arccos(x/perp)
+    return eta, phi
+
+def dphi(phi1, phi2):
+    tmpdphi = math.fabs(phi1-phi2)
+    if tmpdphi >= math.pi:
+        tmpdphi = 2*math.pi - tmpdphi
+    return tmpdphi
 
 def Read(path,varlist):
     # Multi-thread
@@ -35,7 +51,29 @@ def readSeed(path):
     iter3IterL3FromL1MuonPixelSeeds = []
 
     for evt in t:
+
         if evt.nhltIterL3OISeedsFromL2Muons > 0 :
+            # add dR, dPhi
+            hltIterL3OISeedsFromL2Muons_dR = np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIterL3OISeedsFromL2Muons_dPhi = np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIterL3OISeedsFromL2Muons):
+
+                seed_eta = evt.hltIterL3OISeedsFromL2Muons_tsos_eta[iseed]
+                seed_phi = evt.hltIterL3OISeedsFromL2Muons_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIterL3OISeedsFromL2Muons_tsos_glob_x[iseed], evt.hltIterL3OISeedsFromL2Muons_tsos_glob_y[iseed], evt.hltIterL3OISeedsFromL2Muons_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIterL3OISeedsFromL2Muons_dR[iseed] = theDR
+                hltIterL3OISeedsFromL2Muons_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_dir,np.int32))
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_detId,np.uint32))
@@ -67,6 +105,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_tmpL3Ref,np.int32))
+            arr.append(hltIterL3OISeedsFromL2Muons_dR)
+            arr.append(hltIterL3OISeedsFromL2Muons_dPhi)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -75,6 +115,27 @@ def readSeed(path):
             iterL3OISeedsFromL2Muons.append(hltIterL3OISeedsFromL2Muons)
 
         if evt.nhltIter0IterL3MuonPixelSeedsFromPixelTracks > 0 :
+            # add dR, dPhi
+            hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR = np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi = np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter0IterL3MuonPixelSeedsFromPixelTracks):
+
+                seed_eta = evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_eta[iseed]
+                seed_phi = evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_glob_x[iseed], evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_glob_y[iseed], evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR[iseed] = theDR
+                hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_dir,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_detId,np.uint32))
@@ -106,6 +167,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tmpL3Ref,np.int32))
+            arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR)
+            arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi)            
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -114,6 +177,27 @@ def readSeed(path):
             iter0IterL3MuonPixelSeedsFromPixelTracks.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks)
 
         if evt.nhltIter2IterL3MuonPixelSeeds > 0 :
+            # add dR, dPhi
+            hltIter2IterL3MuonPixelSeeds_dR = np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter2IterL3MuonPixelSeeds_dPhi = np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter2IterL3MuonPixelSeeds):
+
+                seed_eta = evt.hltIter2IterL3MuonPixelSeeds_tsos_eta[iseed]
+                seed_phi = evt.hltIter2IterL3MuonPixelSeeds_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter2IterL3MuonPixelSeeds_tsos_glob_x[iseed], evt.hltIter2IterL3MuonPixelSeeds_tsos_glob_y[iseed], evt.hltIter2IterL3MuonPixelSeeds_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter2IterL3MuonPixelSeeds_dR[iseed] = theDR
+                hltIter2IterL3MuonPixelSeeds_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_dir,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_detId,np.uint32))
@@ -145,6 +229,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tmpL3Ref,np.int32))
+            arr.append(hltIter2IterL3MuonPixelSeeds_dR)
+            arr.append(hltIter2IterL3MuonPixelSeeds_dPhi)   
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -153,6 +239,27 @@ def readSeed(path):
             iter2IterL3MuonPixelSeeds.append(hltIter2IterL3MuonPixelSeeds)
 
         if evt.nhltIter3IterL3MuonPixelSeeds > 0 :
+            # add dR, dPhi
+            hltIter3IterL3MuonPixelSeeds_dR = np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter3IterL3MuonPixelSeeds_dPhi = np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter3IterL3MuonPixelSeeds):
+
+                seed_eta = evt.hltIter3IterL3MuonPixelSeeds_tsos_eta[iseed]
+                seed_phi = evt.hltIter3IterL3MuonPixelSeeds_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter3IterL3MuonPixelSeeds_tsos_glob_x[iseed], evt.hltIter3IterL3MuonPixelSeeds_tsos_glob_y[iseed], evt.hltIter3IterL3MuonPixelSeeds_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter3IterL3MuonPixelSeeds_dR[iseed] = theDR
+                hltIter3IterL3MuonPixelSeeds_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_dir,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_detId,np.uint32))
@@ -184,6 +291,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tmpL3Ref,np.int32))
+            arr.append(hltIter3IterL3MuonPixelSeeds_dR)
+            arr.append(hltIter3IterL3MuonPixelSeeds_dPhi)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -192,6 +301,27 @@ def readSeed(path):
             iter3IterL3MuonPixelSeeds.append(hltIter3IterL3MuonPixelSeeds)
 
         if evt.nhltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks > 0 :
+            # add dR, dPhi
+            hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR = np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi = np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks):
+
+                seed_eta = evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_eta[iseed]
+                seed_phi = evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_glob_x[iseed], evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_glob_y[iseed], evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR[iseed] = theDR
+                hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dir,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_detId,np.uint32))
@@ -223,6 +353,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tmpL3Ref,np.int32))
+            arr.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR)
+            arr.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -231,6 +363,27 @@ def readSeed(path):
             iter0IterL3FromL1MuonPixelSeedsFromPixelTracks.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks)
 
         if evt.nhltIter2IterL3FromL1MuonPixelSeeds > 0 :
+            # add dR, dPhi
+            hltIter2IterL3FromL1MuonPixelSeeds_dR = np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter2IterL3FromL1MuonPixelSeeds_dPhi = np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter2IterL3FromL1MuonPixelSeeds):
+
+                seed_eta = evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_eta[iseed]
+                seed_phi = evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_glob_x[iseed], evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_glob_y[iseed], evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter2IterL3FromL1MuonPixelSeeds_dR[iseed] = theDR
+                hltIter2IterL3FromL1MuonPixelSeeds_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_dir,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_detId,np.uint32))
@@ -262,6 +415,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tmpL3Ref,np.int32))
+            arr.append(hltIter2IterL3FromL1MuonPixelSeeds_dR)
+            arr.append(hltIter2IterL3FromL1MuonPixelSeeds_dPhi)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -270,6 +425,27 @@ def readSeed(path):
             iter2IterL3FromL1MuonPixelSeeds.append(hltIter2IterL3FromL1MuonPixelSeeds)
 
         if evt.nhltIter3IterL3FromL1MuonPixelSeeds > 0 :
+            # add dR, dPhi
+            hltIter3IterL3FromL1MuonPixelSeeds_dR = np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter3IterL3FromL1MuonPixelSeeds_dPhi = np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            for iseed in range(evt.nhltIter3IterL3FromL1MuonPixelSeeds):
+
+                seed_eta = evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_eta[iseed]
+                seed_phi = evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_phi[iseed]
+                seed_pos_eta, seed_pos_phi = setEtaPhi(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_glob_x[iseed], evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_glob_y[iseed], evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_glob_z[iseed])
+                
+                theDR = 999.
+                theDphi = 999.
+                if evt.nL1Muon > 0 :
+                    for iL1 in range(evt.nL1Muon):
+                        dR_tmp = dR(evt.L1Muon_eta[iL1], evt.L1Muon_phi[iL1], seed_eta ,seed_phi)
+                        if(dR_tmp < theDR):
+                            theDR = dR_tmp
+                            theDphi = dphi(seed_pos_phi, evt.L1Muon_phi[iL1])
+
+                hltIter3IterL3FromL1MuonPixelSeeds_dR[iseed] = theDR
+                hltIter3IterL3FromL1MuonPixelSeeds_dPhi[iseed] = theDphi
+
             arr = []
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_dir,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_detId,np.uint32))
@@ -301,7 +477,9 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_iterL3Matched,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tmpL3Ref,np.int32))
-
+            arr.append(hltIter3IterL3FromL1MuonPixelSeeds_dR)
+            arr.append(hltIter3IterL3FromL1MuonPixelSeeds_dPhi)
+            
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
 
