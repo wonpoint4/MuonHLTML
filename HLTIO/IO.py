@@ -51,11 +51,49 @@ def readSeed(path):
     iter3IterL3FromL1MuonPixelSeeds = []
 
     for evt in t:
+        # map to TP index
+        hltIterL3OIMuonTrack_TPmap = []
+        if evt.nhltIterL3OIMuonTrack >0:
+            for itrack in range(evt.nhltIterL3OIMuonTrack):
+                if evt.hltIterL3OIMuonTrack_matchedTPsize[itrack]!=0:
+                    hltIterL3OIMuonTrack_TPmap.append(itrack)
+        hltIter0IterL3MuonTrack_TPmap = []
+        if evt.nhltIter0IterL3MuonTrack >0:
+            for itrack in range(evt.nhltIter0IterL3MuonTrack):
+                if evt.hltIter0IterL3MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter0IterL3MuonTrack_TPmap.append(itrack)
+        hltIter2IterL3MuonTrack_TPmap = []
+        if evt.nhltIter2IterL3MuonTrack >0:
+            for itrack in range(evt.nhltIter2IterL3MuonTrack):
+                if evt.hltIter2IterL3MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter2IterL3MuonTrack_TPmap.append(itrack)
+        hltIter3IterL3MuonTrack_TPmap = []
+        if evt.nhltIter3IterL3MuonTrack >0:
+            for itrack in range(evt.nhltIter3IterL3MuonTrack):
+                if evt.hltIter3IterL3MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter3IterL3MuonTrack_TPmap.append(itrack)
+        hltIter0IterL3FromL1MuonTrack_TPmap = []
+        if evt.nhltIter0IterL3FromL1MuonTrack >0:
+            for itrack in range(evt.nhltIter0IterL3FromL1MuonTrack):
+                if evt.hltIter0IterL3FromL1MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter0IterL3FromL1MuonTrack_TPmap.append(itrack)
+        hltIter2IterL3FromL1MuonTrack_TPmap = []
+        if evt.nhltIter2IterL3FromL1MuonTrack >0:
+            for itrack in range(evt.nhltIter2IterL3FromL1MuonTrack):
+                if evt.hltIter2IterL3FromL1MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter2IterL3FromL1MuonTrack_TPmap.append(itrack)
+        hltIter3IterL3FromL1MuonTrack_TPmap = []
+        if evt.nhltIter3IterL3FromL1MuonTrack >0:
+            for itrack in range(evt.nhltIter3IterL3FromL1MuonTrack):
+                if evt.hltIter3IterL3FromL1MuonTrack_matchedTPsize[itrack]!=0:
+                    hltIter3IterL3FromL1MuonTrack_TPmap.append(itrack)
 
         if evt.nhltIterL3OISeedsFromL2Muons > 0 :
             # add dR, dPhi
             hltIterL3OISeedsFromL2Muons_dR = np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIterL3OISeedsFromL2Muons_dPhi = np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIterL3OISeedsFromL2Muons_SigBkgtag = np.asarray(evt.hltIterL3OISeedsFromL2Muons_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+
             for iseed in range(evt.nhltIterL3OISeedsFromL2Muons):
 
                 seed_eta = evt.hltIterL3OISeedsFromL2Muons_tsos_eta[iseed]
@@ -73,6 +111,19 @@ def readSeed(path):
 
                 hltIterL3OISeedsFromL2Muons_dR[iseed] = theDR
                 hltIterL3OISeedsFromL2Muons_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIterL3OISeedsFromL2Muons_tmpL3Ref[iseed] == -1:
+                    hltIterL3OISeedsFromL2Muons_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIterL3OISeedsFromL2Muons_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIterL3OISeedsFromL2Muons_tmpL3Ref[iseed]
+                    if evt.hltIterL3OIMuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIterL3OISeedsFromL2Muons_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIterL3OIMuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIterL3OIMuonTrack_bestMatchTP_pdgId[hltIterL3OIMuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIterL3OISeedsFromL2Muons_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIterL3OIMuonTrack_bestMatchTP_pdgId[hltIterL3OIMuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIterL3OISeedsFromL2Muons_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_dir,np.int32))
@@ -107,6 +158,7 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIterL3OISeedsFromL2Muons_tmpL3Ref,np.int32))
             arr.append(hltIterL3OISeedsFromL2Muons_dR)
             arr.append(hltIterL3OISeedsFromL2Muons_dPhi)
+            arr.append(hltIterL3OISeedsFromL2Muons_SigBkgtag)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -118,6 +170,8 @@ def readSeed(path):
             # add dR, dPhi
             hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR = np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi = np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag = np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+
             for iseed in range(evt.nhltIter0IterL3MuonPixelSeedsFromPixelTracks):
 
                 seed_eta = evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tsos_eta[iseed]
@@ -135,6 +189,19 @@ def readSeed(path):
 
                 hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR[iseed] = theDR
                 hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed] == -1:
+                    hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed]
+                    if evt.hltIter0IterL3MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter0IterL3MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter0IterL3MuonTrack_bestMatchTP_pdgId[hltIter0IterL3MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter0IterL3MuonTrack_bestMatchTP_pdgId[hltIter0IterL3MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_dir,np.int32))
@@ -168,7 +235,9 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_iterL3Ref,np.int32))
             arr.append(np.asarray(evt.hltIter0IterL3MuonPixelSeedsFromPixelTracks_tmpL3Ref,np.int32))
             arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_dR)
-            arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi)            
+            arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_dPhi)
+            arr.append(hltIter0IterL3MuonPixelSeedsFromPixelTracks_SigBkgtag)
+
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -180,6 +249,7 @@ def readSeed(path):
             # add dR, dPhi
             hltIter2IterL3MuonPixelSeeds_dR = np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter2IterL3MuonPixelSeeds_dPhi = np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter2IterL3MuonPixelSeeds_SigBkgtag = np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             for iseed in range(evt.nhltIter2IterL3MuonPixelSeeds):
 
                 seed_eta = evt.hltIter2IterL3MuonPixelSeeds_tsos_eta[iseed]
@@ -197,6 +267,19 @@ def readSeed(path):
 
                 hltIter2IterL3MuonPixelSeeds_dR[iseed] = theDR
                 hltIter2IterL3MuonPixelSeeds_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter2IterL3MuonPixelSeeds_tmpL3Ref[iseed] == -1:
+                    hltIter2IterL3MuonPixelSeeds_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter2IterL3MuonPixelSeeds_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter2IterL3MuonPixelSeeds_tmpL3Ref[iseed]
+                    if evt.hltIter2IterL3MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter2IterL3MuonPixelSeeds_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter2IterL3MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter2IterL3MuonTrack_bestMatchTP_pdgId[hltIter2IterL3MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter2IterL3MuonPixelSeeds_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter2IterL3MuonTrack_bestMatchTP_pdgId[hltIter2IterL3MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter2IterL3MuonPixelSeeds_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_dir,np.int32))
@@ -231,6 +314,7 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter2IterL3MuonPixelSeeds_tmpL3Ref,np.int32))
             arr.append(hltIter2IterL3MuonPixelSeeds_dR)
             arr.append(hltIter2IterL3MuonPixelSeeds_dPhi)   
+            arr.append(hltIter2IterL3MuonPixelSeeds_SigBkgtag)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -242,6 +326,7 @@ def readSeed(path):
             # add dR, dPhi
             hltIter3IterL3MuonPixelSeeds_dR = np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter3IterL3MuonPixelSeeds_dPhi = np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter3IterL3MuonPixelSeeds_SigBkgtag = np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             for iseed in range(evt.nhltIter3IterL3MuonPixelSeeds):
 
                 seed_eta = evt.hltIter3IterL3MuonPixelSeeds_tsos_eta[iseed]
@@ -259,6 +344,19 @@ def readSeed(path):
 
                 hltIter3IterL3MuonPixelSeeds_dR[iseed] = theDR
                 hltIter3IterL3MuonPixelSeeds_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter3IterL3MuonPixelSeeds_tmpL3Ref[iseed] == -1:
+                    hltIter3IterL3MuonPixelSeeds_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter3IterL3MuonPixelSeeds_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter3IterL3MuonPixelSeeds_tmpL3Ref[iseed]
+                    if evt.hltIter3IterL3MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter3IterL3MuonPixelSeeds_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter3IterL3MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter3IterL3MuonTrack_bestMatchTP_pdgId[hltIter3IterL3MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter3IterL3MuonPixelSeeds_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter3IterL3MuonTrack_bestMatchTP_pdgId[hltIter3IterL3MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter3IterL3MuonPixelSeeds_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_dir,np.int32))
@@ -293,6 +391,7 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter3IterL3MuonPixelSeeds_tmpL3Ref,np.int32))
             arr.append(hltIter3IterL3MuonPixelSeeds_dR)
             arr.append(hltIter3IterL3MuonPixelSeeds_dPhi)
+            arr.append(hltIter3IterL3MuonPixelSeeds_SigBkgtag)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -304,6 +403,7 @@ def readSeed(path):
             # add dR, dPhi
             hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR = np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi = np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag = np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             for iseed in range(evt.nhltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks):
 
                 seed_eta = evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tsos_eta[iseed]
@@ -321,6 +421,19 @@ def readSeed(path):
 
                 hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR[iseed] = theDR
                 hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed] == -1:
+                    hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tmpL3Ref[iseed]
+                    if evt.hltIter0IterL3FromL1MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter0IterL3FromL1MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter0IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter0IterL3FromL1MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter0IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter0IterL3FromL1MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dir,np.int32))
@@ -355,6 +468,7 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_tmpL3Ref,np.int32))
             arr.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dR)
             arr.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_dPhi)
+            arr.append(hltIter0IterL3FromL1MuonPixelSeedsFromPixelTracks_SigBkgtag)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -366,6 +480,7 @@ def readSeed(path):
             # add dR, dPhi
             hltIter2IterL3FromL1MuonPixelSeeds_dR = np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter2IterL3FromL1MuonPixelSeeds_dPhi = np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag = np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             for iseed in range(evt.nhltIter2IterL3FromL1MuonPixelSeeds):
 
                 seed_eta = evt.hltIter2IterL3FromL1MuonPixelSeeds_tsos_eta[iseed]
@@ -383,6 +498,19 @@ def readSeed(path):
 
                 hltIter2IterL3FromL1MuonPixelSeeds_dR[iseed] = theDR
                 hltIter2IterL3FromL1MuonPixelSeeds_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter2IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed] == -1:
+                    hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter2IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter2IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed]
+                    if evt.hltIter2IterL3FromL1MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter2IterL3FromL1MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter2IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter2IterL3FromL1MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter2IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter2IterL3FromL1MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_dir,np.int32))
@@ -417,6 +545,7 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter2IterL3FromL1MuonPixelSeeds_tmpL3Ref,np.int32))
             arr.append(hltIter2IterL3FromL1MuonPixelSeeds_dR)
             arr.append(hltIter2IterL3FromL1MuonPixelSeeds_dPhi)
+            arr.append(hltIter2IterL3FromL1MuonPixelSeeds_SigBkgtag)
 
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
@@ -428,6 +557,7 @@ def readSeed(path):
             # add dR, dPhi
             hltIter3IterL3FromL1MuonPixelSeeds_dR = np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             hltIter3IterL3FromL1MuonPixelSeeds_dPhi = np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
+            hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag = np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_err0,np.float32).copy() #dummy array, value will be replaced  
             for iseed in range(evt.nhltIter3IterL3FromL1MuonPixelSeeds):
 
                 seed_eta = evt.hltIter3IterL3FromL1MuonPixelSeeds_tsos_eta[iseed]
@@ -445,6 +575,19 @@ def readSeed(path):
 
                 hltIter3IterL3FromL1MuonPixelSeeds_dR[iseed] = theDR
                 hltIter3IterL3FromL1MuonPixelSeeds_dPhi[iseed] = theDphi
+
+                # sig, bkg tag
+                if evt.hltIter3IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed] == -1:
+                    hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 0 # bkg seed that doens't have track
+                if evt.hltIter3IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed] != -1:
+                    trkindex = evt.hltIter3IterL3FromL1MuonPixelSeeds_tmpL3Ref[iseed]
+                    if evt.hltIter3IterL3FromL1MuonTrack_matchedTPsize[trkindex] == 0:
+                        hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 1 # bkg seed that are not matched to simtrack
+                    if evt.hltIter3IterL3FromL1MuonTrack_matchedTPsize[trkindex] != 0:
+                        if abs(evt.hltIter3IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter3IterL3FromL1MuonTrack_TPmap.index(trkindex)]) != 13:
+                            hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 2 # bkg seed that are not muon
+                        if abs(evt.hltIter3IterL3FromL1MuonTrack_bestMatchTP_pdgId[hltIter3IterL3FromL1MuonTrack_TPmap.index(trkindex)]) == 13:
+                            hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag[iseed] = 3 # signal
 
             arr = []
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_dir,np.int32))
@@ -479,7 +622,8 @@ def readSeed(path):
             arr.append(np.asarray(evt.hltIter3IterL3FromL1MuonPixelSeeds_tmpL3Ref,np.int32))
             arr.append(hltIter3IterL3FromL1MuonPixelSeeds_dR)
             arr.append(hltIter3IterL3FromL1MuonPixelSeeds_dPhi)
-            
+            arr.append(hltIter3IterL3FromL1MuonPixelSeeds_SigBkgtag)
+
             for i in [1,3,26,27,28,29]: arr[i].astype(np.float32)
             for i in range(len(arr)): arr[i] = np.reshape(arr[i], (-1,1))
 
