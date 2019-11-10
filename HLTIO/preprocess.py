@@ -39,9 +39,9 @@ def dfSigBkg(df):
     y_f1 = np.full(df_fake1.shape[0],1,np.int32)
     y_s0 = np.full(df_sig0.shape[0],2,np.int32)
     y_s1 = np.full(df_sig1.shape[0],3,np.int32)
-    y = np.concatenate(y_f0,y_f1)
-    y = np.concatenate(y,y_s0)
-    y = np.concatenate(y,y_s1)
+    y = np.concatenate((y_f0,y_f1))
+    y = np.concatenate((y,y_s0))
+    y = np.concatenate((y,y_s1))
     y = pd.Series(y,name='y')
     print(r'y shape: %d' % (y.shape) )
     df = df.iloc[:,0:32]
