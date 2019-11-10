@@ -13,29 +13,36 @@ def doTSNE(seed,seedname,filename):
         checkfile.resolve()
     except FileNotFoundError:
         seed = pd.DataFrame(seed)
-        seed, fake = preprocess.dfSigBkg(seed)
-        seed.drop(seed.columns[[1,3,26]],axis=1,inplace=True)
+        seed, y = preprocess.dfSigBkg(seed)
+        seed.drop(seed.columns[[1,2,3,23,24,26,27,28,29]],axis=1,inplace=True)
 
         tsne = TSNE(n_components=2, verbose=1, perplexity=50, n_iter=500)
         tsne_result = tsne.fit_transform(seed)
         seed['tsne-x'] = tsne_result[:,0]
         seed['tsne-y'] = tsne_result[:,1]
 
-        seed = pd.concat([seed,fake], axis=1)
+        seed = pd.concat([seed,y], axis=1)
         seed.to_csv(checkfile,index=None,header=True)
     else:
         seed = pd.read_csv(checkfile)
-        fake = seed.iloc[:,-1]
+        seed.drop(seed.columns['y'],axis=1,inplace=True)
+        y = seed.iloc[:,-1]
 
     # vis.scatter2dSB(seed[~fake][['tsne-x','tsne-y']].values, seed[fake][['tsne-x','tsne-y']].values, 't-sne_'+seedname)
-    vis.hist2dSig(seed[~fake][['tsne-x','tsne-y']].values,'t-sneSig_'+filename+'_'+seedname)
-    vis.hist2dBkg(seed[fake][['tsne-x','tsne-y']].values,'t-sneBkg_'+filename+'_'+seedname)
-    vis.hist2dOverlay(seed[~fake][['tsne-x','tsne-y']].values,seed[fake][['tsne-x','tsne-y']].values,'t-sneOverlay_'+filename+'_'+seedname)
+    fake0 = ( seed['y']==0. ).all(axis=1)
+    fake1 = ( seed['y']==1. ).all(axis=1)
+    sig0 = ( seed['y']==2. ).all(axis=1)
+    sig1 = ( seed['y']==3. ).all(axis=1)
+    vis.hist2d(0,seed[sig0][['tsne-x','tsne-y']].values,'t-sneSig0_'+filename+'_'+seedname)
+    vis.hist2d(1,seed[sig1][['tsne-x','tsne-y']].values,'t-sneSig1_'+filename+'_'+seedname)
+    vis.hist2d(2,seed[fake0][['tsne-x','tsne-y']].values,'t-sneBkg0_'+filename+'_'+seedname)
+    vis.hist2d(3,seed[fake1][['tsne-x','tsne-y']].values,'t-sneBkg1_'+filename+'_'+seedname)
+    vis.hist2dOverlay(seed[sig0][['tsne-x','tsne-y']].values,seed[sig1][['tsne-x','tsne-y']].values,seed[fake0][['tsne-x','tsne-y']].values,seed[fake1][['tsne-x','tsne-y']].values,'t-sneOverlay_'+filename+'_'+seedname)
 
     return
 
 # seeds = IO.readSeed("./data/ntuple_PU50.root")
-filename = 'ntuple_SingleMuon2018C_Run319941_NMu1_Pt27to1000000000_PU40to60_RAWAOD'
+filename = 'Mu_FlatPt2to100_PU200'
 seeds = IO.readSeedNp("./data/"+filename+".root")
 
 doTSNE(seeds[0],"iterL3OISeedsFromL2Muons",filename)

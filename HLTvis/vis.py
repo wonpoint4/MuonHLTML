@@ -29,9 +29,13 @@ def scatter2dSB(sig, bkg, plotname):
 
     return
 
-def hist2dSig(data, plotname):
+def hist2d(idx,data, plotname):
+    if idx==0: cm=plt.cm.Reds
+    if idx==1: cm=plt.cm.Oranges
+    if idx==2: cm=plt.cm.Greens
+    if idx==3: cm=plt.cm.Blues
     plt.figure(figsize=(6,4))
-    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Blues)
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=cm)
     plt.colorbar()
     plt.draw()
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
@@ -39,17 +43,7 @@ def hist2dSig(data, plotname):
 
     return
 
-def hist2dBkg(data, plotname):
-    plt.figure(figsize=(6,4))
-    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Reds)
-    plt.colorbar()
-    plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
-    plt.close()
-
-    return
-
-def hist2dOverlay(dataSig, dataBkg, plotname):
+def hist2dOverlay(dataSig0,dataSig1,dataBkg0,dataBkg1,plotname):
     plt.figure(figsize=(6,4))
     cmapBlue = plt.cm.Blues(np.arange(plt.cm.Blues.N))
     cmapBlue[:,-1] = np.linspace(0, 0.8, plt.cm.Blues.N)
@@ -57,10 +51,18 @@ def hist2dOverlay(dataSig, dataBkg, plotname):
     cmapRed = plt.cm.Reds(np.arange(plt.cm.Reds.N))
     cmapRed[:,-1] = np.linspace(0, 0.8, plt.cm.Reds.N)
     cmapRed = ListedColormap(cmapRed)
-    plt.hist2d(dataBkg[:,0], dataBkg[:,1], bins=100, cmap=cmapRed, normed=True)
-    plt.colorbar()
-    plt.hist2d(dataSig[:,0], dataSig[:,1], bins=100, cmap=cmapBlue, normed=True)
-    plt.colorbar()
+    cmapOrange = plt.cm.Oranges(np.arange(plt.cm.Oranges.N))
+    cmapOrange[:,-1] = np.linspace(0, 0.8, plt.cm.Oranges.N)
+    cmapOrange = ListedColormap(cmapOrange)
+    cmapGreen = plt.cm.Greens(np.arange(plt.cm.Greens.N))
+    cmapGreen[:,-1] = np.linspace(0, 0.8, plt.cm.Greens.N)
+    cmapGreen = ListedColormap(cmapGreen)
+    plt.hist2d(dataBkg0[:,0], dataBkg0[:,1], bins=100, cmap=cmapRed, normed=True)
+    plt.hist2d(dataBkg1[:,0], dataBkg1[:,1], bins=100, cmap=cmapOrange, normed=True)
+    # plt.colorbar()
+    plt.hist2d(dataSig0[:,0], dataSig0[:,1], bins=100, cmap=cmapGreen, normed=True)
+    plt.hist2d(dataSig1[:,0], dataSig1[:,1], bins=100, cmap=cmapBlue, normed=True)
+    # plt.colorbar()
     plt.draw()
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
