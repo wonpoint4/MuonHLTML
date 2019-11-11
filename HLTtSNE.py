@@ -21,7 +21,7 @@ def doTSNE(seed,seedname,filename):
         seed['tsne-x'] = tsne_result[:,0]
         seed['tsne-y'] = tsne_result[:,1]
 
-        seed = pd.concat([seed,y], axis=1)
+        seed = pd.concat([seed,y], axis=1,ignore_index=True)
         seed.to_csv(checkfile,index=None,header=True)
     else:
         seed = pd.read_csv(checkfile)
@@ -33,10 +33,10 @@ def doTSNE(seed,seedname,filename):
     fake1 = ( seed['y']==1. ).all(axis=1)
     sig0 = ( seed['y']==2. ).all(axis=1)
     sig1 = ( seed['y']==3. ).all(axis=1)
-    vis.hist2d(0,seed[sig0][['tsne-x','tsne-y']].values,'t-sneSig0_'+filename+'_'+seedname)
-    vis.hist2d(1,seed[sig1][['tsne-x','tsne-y']].values,'t-sneSig1_'+filename+'_'+seedname)
-    vis.hist2d(2,seed[fake0][['tsne-x','tsne-y']].values,'t-sneBkg0_'+filename+'_'+seedname)
-    vis.hist2d(3,seed[fake1][['tsne-x','tsne-y']].values,'t-sneBkg1_'+filename+'_'+seedname)
+    vis.hist2d(2,seed[sig0][['tsne-x','tsne-y']].values,'t-sneSig0_'+filename+'_'+seedname)
+    vis.hist2d(3,seed[sig1][['tsne-x','tsne-y']].values,'t-sneSig1_'+filename+'_'+seedname)
+    vis.hist2d(0,seed[fake0][['tsne-x','tsne-y']].values,'t-sneBkg0_'+filename+'_'+seedname)
+    vis.hist2d(1,seed[fake1][['tsne-x','tsne-y']].values,'t-sneBkg1_'+filename+'_'+seedname)
     vis.hist2dOverlay(seed[sig0][['tsne-x','tsne-y']].values,seed[sig1][['tsne-x','tsne-y']].values,seed[fake0][['tsne-x','tsne-y']].values,seed[fake1][['tsne-x','tsne-y']].values,'t-sneOverlay_'+filename+'_'+seedname)
 
     return
