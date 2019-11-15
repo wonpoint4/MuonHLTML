@@ -29,12 +29,58 @@ def scatter2dSB(sig, bkg, plotname):
 
     return
 
+def histoverlay(sig, bkg1, bkg2, bkg3, seedtype, plotname):
+
+    plt.figure(figsize=(6,4))
+    bins=np.histogram(np.hstack((sig, bkg1, bkg2, bkg3)), bins=100)[1]
+    plt.hist(sig,  bins, edgecolor="b", histtype='step', density=True,label='sig')
+    plt.hist(bkg1, bins, edgecolor="g", histtype='step', density=True,label='bkg1')
+    plt.hist(bkg2, bins, edgecolor="orange", histtype='step', density=True,label='bkg2')
+    plt.hist(bkg3, bins, edgecolor="r", histtype='step', density=True,label='bkg3')
+    plt.legend()
+    plt.draw()
+    plt.savefig('./seed_plots/'+seedtype+'_overlay_variable'+plotname+'.pdf',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
 def hist2dSig(data, plotname):
     plt.figure(figsize=(6,4))
     plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Blues)
     plt.colorbar()
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./seed_plots/'+plotname+'.pdf',dpi=300, bbox_inches='tight')
+    # plt.savefig('testsig.pdf',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def hist2dBkg1(data, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Greens)
+    plt.colorbar()
+    plt.draw()
+    plt.savefig('./seed_plots/'+plotname+'.pdf',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def hist2dBkg2(data, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Oranges)
+    plt.colorbar()
+    plt.draw()
+    plt.savefig('./seed_plots/'+plotname+'.pdf',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def hist2dBkg3(data, plotname):
+    plt.figure(figsize=(6,4))
+    plt.hist2d(data[:,0], data[:,1], bins=100, cmap=plt.cm.Reds)
+    plt.colorbar()
+    plt.draw()
+    plt.savefig('./seed_plots/'+plotname+'.pdf',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
@@ -83,17 +129,18 @@ def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotn
 
     return
 
-def drawScore(dSigPredict, dBkgPredict, plotname):
+def drawScore(dSigPredict, dBkg1Predict, dBkg2Predict, dBkg3Predict, plotname):
+
     plt.figure(figsize=(6,4))
-    plt.hist(dSigPredict, 100, normed=True, alpha=0.5, label='Sig', range=(0,1), color='b')
-    plt.hist(dBkgPredict, 100, normed=True, alpha=0.5, label='Bkg', range=(0,1), color='r')
+    colors = ['blue', 'green', 'orange', 'red'] 
+    labels = ['sig', 'bkg1', 'bkg2', 'bkg3'] 
+
+    plt.hist([dSigPredict,dBkg1Predict,dBkg2Predict,dBkg3Predict],4, normed=True, alpha=0.5, label=labels, range=(0,4), stacked=True, color=colors)
     plt.grid()
-    # plt.yscale('log')
     plt.title(plotname)
-    plt.xlabel('Output')
-    plt.ylabel('seeds(normed)/0.01')
+    plt.xlabel('label')
     plt.legend(loc='upper right')
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+plotname+'.pdf',dpi=300, bbox_inches='tight')
 
     return
