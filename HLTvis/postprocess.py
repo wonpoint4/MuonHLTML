@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import pandas as pd
-from sklearn.metrics import roc_curve, roc_auc_score
+from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix
 
 def maskTarget(x, y):
     y = np.reshape(y, (-1,1))
@@ -23,3 +23,9 @@ def calROC(dTrainPredict, dTestPredict, y_train, y_test):
     AUC_Test = roc_auc_score(y_test, dTestPredict)
 
     return fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test
+
+def confMat(y,pred):
+    confMat_ = confusion_matrix(y,pred)
+    confMat_ = confMat_.astype('float') / confMat_.astype('float').sum(axis=1)
+
+    return confMat_

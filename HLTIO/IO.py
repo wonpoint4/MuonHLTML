@@ -1,11 +1,14 @@
 import sys
+import glob
 import numpy as np
 import ROOT
+from HLTIO import preprocess
 from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 from scipy import sparse
 from pathlib import Path
 import math
+import pandas as pd
 
 # IO (Require ROOT version > 6.14)
 def dR(eta1, phi1, eta2, phi2):
@@ -678,6 +681,72 @@ def readSeedNp(path):
 
         return iterL3OISeedsFromL2Muons, iter0IterL3MuonPixelSeedsFromPixelTracks, iter2IterL3MuonPixelSeeds, iter3IterL3MuonPixelSeeds, \
         iter0IterL3FromL1MuonPixelSeedsFromPixelTracks, iter2IterL3FromL1MuonPixelSeeds, iter3IterL3FromL1MuonPixelSeeds
+
+def treeToDf(tree):
+    npArr, cols = tree.AsMatrix(return_labels=True)
+    df = pd.DataFrame(data=npArr, columns=cols)
+
+    return df
+
+def readSeedTree(path,treePath):
+    ROOT.ROOT.EnableImplicitMT()
+
+    # chain = ROOT.TChain(treePath)
+    # chain.Add(path)
+
+    f = ROOT.TFile.Open(path)
+    tree = f.Get(treePath)
+    df = treeToDf(tree)
+
+    return preprocess.getNclass(df)
+
+def readMinSeeds(dir,treePath):
+    filelist = glob.glob(dir)
+    full = pd.DataFrame()
+    y = np.array([]).reshape(0,)
+    n = np.array([0,0,0,0])
+    cut = 100000
+
+    for path in filelist:
+        if np.all( n >= cut ):
+            continue
+
+        notBuilt, combi, simMatched, muMatched = readSeedTree(path,treePath)
+        subset = pd.DataFrame()
+        n_ = np.array([0,0,0,0])
+        y_ = np.array([]).reshape(0,)
+        if n[0] < cut:
+            subset = subset.append(notBuilt,ignore_index=True)
+            y_ = np.hstack( ( y_, np.full(notBuilt.shape[0],0) ) )
+            n_[0] = notBuilt.shape[0]
+        if n[1] < cut:
+            subset = subset.append(combi,ignore_index=True)
+            y_ = np.hstack( ( y_, np.full(combi.shape[0],1) ) )
+            n_[1] = combi.shape[0]
+        if n[2] < cut:
+            subset = subset.append(simMatched,ignore_index=True)
+            y_ = np.hstack( ( y_, np.full(simMatched.shape[0],2) ) )
+            n_[2] = simMatched.shape[0]
+        if n[3] < cut:
+            subset = subset.append(muMatched,ignore_index=True)
+            y_ = np.hstack( ( y_, np.full(muMatched.shape[0],3) ) )
+            n_[3] = muMatched.shape[0]
+
+        full = full.append(subset, ignore_index=True)
+        n += n_
+        y = np.hstack( (y,y_) )
+
+        full = preprocess.filterClass(full)
+
+    return full, y
+
+    # tOI = f.Get("seedNtupler/NThltIterL3OI")
+    # tIOL2_0 = f.Get("seedNtupler/NThltIter0")
+    # tIOL2_2 = f.Get("seedNtupler/NThltIter2")
+    # tIOL2_3 = f.Get("seedNtupler/NThltIter3")
+    # tIOL1_0 = f.Get("seedNtupler/NThltIter0FromL1")
+    # tIOL1_2 = f.Get("seedNtupler/NThltIter2FromL1")
+    # tIOL1_3 = f.Get("seedNtupler/NThltIter3FromL1")
 
 def dumpsvm(x, y, filename):
     dump_svmlight_file(x, y, filename, zero_based=True)

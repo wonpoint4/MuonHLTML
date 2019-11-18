@@ -99,3 +99,27 @@ def drawScore(dSigPredict, dBkgPredict, plotname):
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
     return
+
+def drawConfMat(confMat, plotname):
+    # plt.figure(figsize=(6,4))
+    fig, ax = plt.subplots()
+    names = ['NotBuilt','Comb','Tracks','Muons']
+
+    ax.imshow(confMat,cmap='viridis')
+    plt.title(plotname)
+    plt.xlabel('prediction')
+    plt.ylabel('true')
+
+    ax.set_xticks(np.arange(len(names)))
+    ax.set_yticks(np.arange(len(names)))
+    ax.set_xticklabels(names)
+    ax.set_yticklabels(names)
+
+    for i in range(len(names)):
+        for j in range(len(names)):
+            text = ax.text(j, i, r'{:.3f}'.format(confMat[i,j]), ha='center', va='center', color='w')
+
+
+    # ax.colorbar()
+
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
