@@ -31,6 +31,7 @@ def doXGB(seed,seedname):
     param = {'max_depth':6, 'eta':0.1, 'gamma':10, 'objective':'multi:softmax', 'num_class': 4, 'subsample':0.5, 'eval_metric':'mlogloss','lambda':2.5}
     param['min_child_weight'] = np.sum(y_wgtsTrain)/1000.
     param['tree_method'] = 'exact'
+    param['nthread'] = 1
 
     num_round = 500
     bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50)
