@@ -688,19 +688,18 @@ def treeToDf(tree):
 
     return df
 
-def readSeedTree(path,treePath):
+def readSeedTree(path,treePath,minpt,maxpt):
     ROOT.ROOT.EnableImplicitMT()
-
-    # chain = ROOT.TChain(treePath)
-    # chain.Add(path)
 
     f = ROOT.TFile.Open(path)
     tree = f.Get(treePath)
     df = treeToDf(tree)
+    df = df[ df['tsos_pt'] < maxpt ]
+    df = df[ df['tsos_pt'] > minpt ]
 
     return preprocess.getNclass(df)
 
-def readMinSeeds(dir,treePath):
+def readMinSeeds(dir,treePath,minpt,maxpt):
     filelist = glob.glob(dir)
     full = pd.DataFrame()
     y = np.array([]).reshape(0,)
@@ -711,7 +710,7 @@ def readMinSeeds(dir,treePath):
         if np.all( n >= cut ):
             continue
 
-        notBuilt, combi, simMatched, muMatched = readSeedTree(path,treePath)
+        notBuilt, combi, simMatched, muMatched = readSeedTree(path,treePath,minpt,maxpt)
         subset = pd.DataFrame()
         n_ = np.array([0,0,0,0])
         y_ = np.array([]).reshape(0,)
@@ -739,14 +738,6 @@ def readMinSeeds(dir,treePath):
         full = preprocess.filterClass(full)
 
     return full, y
-
-    # tOI = f.Get("seedNtupler/NThltIterL3OI")
-    # tIOL2_0 = f.Get("seedNtupler/NThltIter0")
-    # tIOL2_2 = f.Get("seedNtupler/NThltIter2")
-    # tIOL2_3 = f.Get("seedNtupler/NThltIter3")
-    # tIOL1_0 = f.Get("seedNtupler/NThltIter0FromL1")
-    # tIOL1_2 = f.Get("seedNtupler/NThltIter2FromL1")
-    # tIOL1_3 = f.Get("seedNtupler/NThltIter3FromL1")
 
 def dumpsvm(x, y, filename):
     dump_svmlight_file(x, y, filename, zero_based=True)

@@ -49,14 +49,16 @@ def dfSigBkg(df):
 
     return df, y
 
-def computeClassWgt(y):
+def computeClassWgt(y, y_test):
     wgts = utils.class_weight.compute_class_weight('balanced',np.unique(y),y)
 
     y_wgts = np.full(y.shape[0],1.)
+    ytest_wgts = np.full(y_test.shape[0],1.)
     for i,v in enumerate(wgts):
-        y_wgts = np.multiply(y_wgts,np.where(y==i,wgts[i],1.))
+        y_wgts = np.multiply(y_wgts,np.where(y==i,v,1.))
+        ytest_wgts = np.multiply(ytest_wgts,np.where(y_test==i,v,1.))
 
-    return y_wgts
+    return y_wgts, ytest_wgts
 
 def getNclass(df):
     notBuilt = df[df['matchedTPsize']==-99999.]
@@ -66,27 +68,16 @@ def getNclass(df):
 
     simMatched.drop(muMatched.index.values, inplace=True)
 
-    # counts = df['matchedTPsize'].value_counts()
-    # nNotBuilt = counts.loc[-99999.0]
-    # nCombi = counts.loc[0.0]
-    # nSimMatched = counts.loc[1.0] # explicit match
-    # muCounts = df['bestMatchTP_pdgId'].value_counts()
-    # nMu = muCounts.loc[13.0] + muCounts.loc[-13.0]
-    #
-    # print(nSimMatched)
-    # print(nMu)
-
     return notBuilt, combi, simMatched, muMatched
 
 def filterClass(df):
-    df.drop(['dir','tsos_detId','tsos_hasErr','tsos_px','tsos_py','tsos_pz','tsos_charge','bestMatchTP_pdgId','matchedTPsize'], axis=1, inplace=True)
+    df.drop(['dir','tsos_detId','tsos_pt_val','tsos_hasErr','bestMatchTP_pdgId','matchedTPsize'], axis=1, inplace=True)
 
     return df
 
-def stdTransform(x_train, dfs):
+def stdTransform(x_train, x_test):
     Transformer = preprocessing.StandardScaler()
     x_train = Transformer.fit_transform(x_train)
-    for i,df in enumerate(dfs):
-        dfs[i] = Transformer.transform(df)
+    x_test = Transformer.transform(x_test)
 
-    return x_train, dfs
+    return x_train, x_test
