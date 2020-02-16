@@ -1,4 +1,5 @@
 import sys
+import multiprocessing
 import numpy as np
 import pandas as pd
 from HLTIO import IO
@@ -21,7 +22,7 @@ def doXGB(seed,seedname):
     x_train, x_test = preprocess.stdTransform(x_train, x_test)
     y_wgtsTrain, y_wgtsTest = preprocess.computeClassWgt(y_train, y_test)
 
-    print(r'C0: %d, C1: %d, C2: %d, C3: %d' % ( (seed[1]==0).sum(), (seed[1]==1).sum(), (seed[1]==2).sum(), (seed[1]==3).sum() ) )
+    print(seedname + r' C0: %d, C1: %d, C2: %d, C3: %d' % ( (seed[1]==0).sum(), (seed[1]==1).sum(), (seed[1]==2).sum(), (seed[1]==3).sum() ) )
 
     dtrain = xgb.DMatrix(x_train, weight=y_wgtsTrain, label=y_train)
     dtest = xgb.DMatrix(x_test, weight=y_wgtsTest, label=y_test)
@@ -45,17 +46,16 @@ def doXGB(seed,seedname):
 
     return
 
-seedsOI = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIterL3OI',0.,99999.)
-doXGB(seedsOI,'OI')
-seedsIOL2quad = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter0',0.,99999.)
-doXGB(seedsIOL2quad,'IOL2quad')
-seedsIOL2tri = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter2',0.,99999.)
-doXGB(seedsIOL2tri,'IOL2tri')
-seedsIOL2doub = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter3',0.,99999.)
-doXGB(seedsIOL2doub,'IOL2doub')
-seedsIOL1quad = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter0FromL1',0.,99999.)
-doXGB(seedsIOL1quad,'IOL1quad')
-seedsIOL1tri = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter2FromL1',0.,99999.)
-doXGB(seedsIOL1tri,'IOL1tri')
-seedsIOL1doub = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/NThltIter3FromL1',0.,99999.)
-doXGB(seedsIOL1doub,'IOL1doub')
+def run(seedname):
+    seed = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/'+seedname,0.,99999.)
+    doXGB(seed,seedname)
+
+seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
+
+if __name__ == '__main__':
+    pool = multiprocessing.Pool(processes=7)
+    pool.map(run,seedlist)
+    pool.close()
+    pool.join()
+
+print('Finished')
