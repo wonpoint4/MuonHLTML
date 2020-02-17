@@ -688,7 +688,7 @@ def treeToDf(tree):
 
     return df
 
-def readSeedTree(path,treePath,minpt,maxpt):
+def readSeedTree(path,treePath,minpt,maxpt,isB):
     ROOT.ROOT.EnableImplicitMT()
 
     f = ROOT.TFile.Open(path)
@@ -696,10 +696,14 @@ def readSeedTree(path,treePath,minpt,maxpt):
     df = treeToDf(tree)
     df = df[ df['tsos_pt'] < maxpt ]
     df = df[ df['tsos_pt'] > minpt ]
+    if isB:
+        df = df[ ( (df['tsos_eta'] < 0.9) & (df['tsos_eta'] > -0.9) ) ]
+    else:
+        df = df[ ( (df['tsos_eta'] > 0.9) & (df['tsos_eta'] < -0.9) ) ]
 
     return preprocess.getNclass(df)
 
-def readMinSeeds(dir,treePath,minpt,maxpt):
+def readMinSeeds(dir,treePath,minpt,maxpt,isB):
     filelist = glob.glob(dir)
     full = pd.DataFrame()
     y = np.array([]).reshape(0,)
@@ -710,7 +714,7 @@ def readMinSeeds(dir,treePath,minpt,maxpt):
         if np.all( n >= cut ):
             continue
 
-        notBuilt, combi, simMatched, muMatched = readSeedTree(path,treePath,minpt,maxpt)
+        notBuilt, combi, simMatched, muMatched = readSeedTree(path,treePath,minpt,maxpt,isB)
         subset = pd.DataFrame()
         n_ = np.array([0,0,0,0])
         y_ = np.array([]).reshape(0,)

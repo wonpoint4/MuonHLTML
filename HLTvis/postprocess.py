@@ -25,6 +25,9 @@ def calROC(dTrainPredict, dTestPredict, y_train, y_test):
     return fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test
 
 def confMat(y,pred):
-    confMat_ = confusion_matrix(y,pred,normalize='true')
+    confMat_ = confusion_matrix(y,pred,normalize='true',labels=[0,1,2,3])
 
     return confMat_
+
+def softmaxLabel(predict):
+    return np.argmax(predict, axis=1)

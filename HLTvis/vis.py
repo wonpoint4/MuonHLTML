@@ -119,7 +119,16 @@ def drawConfMat(confMat, plotname):
         for j in range(len(names)):
             text = ax.text(j, i, r'{:.3f}'.format(confMat[i,j]), ha='center', va='center', color='w')
 
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
-    # ax.colorbar()
+def drawImportance(gain, cover, colname, plotname):
+    plt.figure(figsize=(6,4))
+    barwidth = 0.4
+    valGain = np.asarray(list(gain.values()))
+    sortedCover = np.asarray([cover[x] for x in gain.keys()])
+    b1 = plt.barh(np.arange(len(gain))-barwidth/2., 100.*valGain/np.sum(valGain), barwidth, color='r', label='gain')
+    b2 = plt.barh(np.arange(len(cover))+barwidth/2., 100.*sortedCover/np.sum(sortedCover), barwidth, color='b', label='cover')
+    plt.yticks(range(len(gain)), colname,fontsize=5)
+    plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=5 )
 
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
