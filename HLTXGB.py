@@ -60,7 +60,7 @@ def doXGB(seed,seedname):
     return
 
 def run(seedname):
-    seed = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/'+seedname,0.,99999.)
+    seed = IO.readMinSeeds('/home/common/MuGunPU200_seedNtuple/ntuple_*.root','seedNtupler/'+seedname,0.,99999.,True)
     # seed = IO.readMinSeeds('data/ntuple_1.root','seedNtupler/'+seedname,0.,99999.,True)
     doXGB(seed,seedname)
 
