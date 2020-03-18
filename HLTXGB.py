@@ -15,7 +15,7 @@ import os
 # gpu_id = '0' #sys.argv[1]
 # os.environ["CUDA_VISIBLE_DEVICES"]=gpu_id
 
-def doXGB(seed,seedname,runname):
+def doXGB(seed,seedname,runname,doLoad):
     colname = list(seed[0].columns)
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
     x_train, x_test = preprocess.stdTransform(x_train, x_test)
@@ -33,11 +33,17 @@ def doXGB(seed,seedname,runname):
     param['nthread'] = 4
 
     num_round = 500
-    bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
-    bst.save_model('model/'+runname+'_'+seedname+'.model')
 
-    dTrainPredict = bst.predict(dtrain, ntree_limit=bst.best_ntree_limit)
-    dTestPredict = bst.predict(dtest, ntree_limit=bst.best_ntree_limit)
+    bst = xgb.Booster(param)
+
+    if doLoad:
+        bst.load_model('model/'+runname+'_'+seedname+'.model')
+    else:
+        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
+        bst.save_model('model/'+runname+'_'+seedname+'.model')
+
+    dTrainPredict = bst.predict(dtrain)
+    dTestPredict = bst.predict(dtest)
 
     labelTrain = postprocess.softmaxLabel(dTrainPredict)
     labelTest = postprocess.softmaxLabel(dTestPredict)
@@ -63,8 +69,8 @@ def doXGB(seed,seedname,runname):
 def run(seedname):
     seed = IO.readMinSeeds('/home/common/DY_seedNtuple/ntuple_*.root','seedNtupler/'+seedname,0.,99999.,True)
     runname = 'PU180to200Barrel'
-    # seed = IO.readMinSeeds('data/ntuple_1.root','seedNtupler/'+seedname,0.,99999.,True)
-    doXGB(seed,seedname,runname)
+    # seed = IO.readMinSeeds('data/ntuple_3-60.root','seedNtupler/'+seedname,0.,99999.,True)
+    doXGB(seed,seedname,runname,False)
 
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
 # seedlist = ['NThltIterL3OI','NThltIter2']
