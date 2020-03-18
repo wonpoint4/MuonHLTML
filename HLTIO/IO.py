@@ -694,6 +694,7 @@ def readSeedTree(path,treePath,minpt,maxpt,isB):
     f = ROOT.TFile.Open(path)
     tree = f.Get(treePath)
     df = treeToDf(tree)
+    df = df[ df['truePU'] > 180. ]
     df = df[ df['tsos_pt'] < maxpt ]
     df = df[ df['tsos_pt'] > minpt ]
     if isB:
