@@ -48,6 +48,12 @@ def doXGB(seed,seedname,runname,doLoad):
     labelTrain = postprocess.softmaxLabel(dTrainPredict)
     labelTest = postprocess.softmaxLabel(dTestPredict)
 
+    for cat in range(4):
+        if ( np.asarray(y_train==cat,dtype=np.int).sum() < 2 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 2 ): continue
+
+        fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test = postprocess.calROC(dTrainPredict[:,cat], dTestPredict[:,cat], np.asarray(y_train==cat,dtype=np.int), np.asarray(y_test==cat,dtype=np.int))
+        vis.drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_cat%d.png' % cat)
+
     confMat = postprocess.confMat(labelTest,y_test)
     vis.drawConfMat(confMat,runname+'_'+seedname+'_testConfMat')
 
@@ -57,13 +63,7 @@ def doXGB(seed,seedname,runname,doLoad):
     gain = bst.get_score(importance_type='gain')
     cover = bst.get_score(importance_type='cover')
     vis.drawImportance(gain,cover,colname,runname+'_'+seedname+'_importance')
-
-    for cat in range(4):
-        if ( np.asarray(y_train==cat,dtype=np.int).sum() < 2 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 2 ): continue
-
-        fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test = postprocess.calROC(dTrainPredict[:,cat], dTestPredict[:,cat], np.asarray(y_train==cat,dtype=np.int), np.asarray(y_test==cat,dtype=np.int))
-        vis.drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_cat%d.png' % cat)
-
+    
     return
 
 def run(seedname):
