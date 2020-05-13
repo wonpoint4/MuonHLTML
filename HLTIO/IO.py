@@ -69,7 +69,7 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
     cut = 500000
 
     for path in filelist:
-        print(f'Processing file {path}...\n')
+        print(f'Processing file {path}...')
         if np.all( n >= cut ):
             continue
 
