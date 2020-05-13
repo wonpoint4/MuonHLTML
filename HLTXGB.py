@@ -67,7 +67,7 @@ def doXGB(seed,seedname,runname,doLoad):
     return
 
 def run(seedname):
-    seed = IO.readMinSeeds('/home/common/DY_seedNtuple/ntuple_*.root','seedNtupler/'+seedname,0.,99999.,True)
+    seed = IO.readMinSeeds('/home/common/DY_seedNtuple_v20200510/ntuple_*.root','seedNtupler/'+seedname,0.,99999.,True)
     runname = 'PU180to200Barrel'
     # seed = IO.readMinSeeds('data/ntuple_3-60.root','seedNtupler/'+seedname,0.,99999.,True)
     doXGB(seed,seedname,runname,False)
