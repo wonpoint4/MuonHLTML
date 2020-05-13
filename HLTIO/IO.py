@@ -81,26 +81,18 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
             subset = subset.append(notBuilt,ignore_index=True)
             y_ = np.hstack( ( y_, np.full(notBuilt.shape[0],0) ) )
             n_[0] = notBuilt.shape[0]
-
-            print('added %d of notBuild seeds' % n_[0])
         if n[1] < cut:
             subset = subset.append(combi,ignore_index=True)
             y_ = np.hstack( ( y_, np.full(combi.shape[0],1) ) )
             n_[1] = combi.shape[0]
-
-            print('added %d of combi seeds' % n_[1])
         if n[2] < cut:
             subset = subset.append(simMatched,ignore_index=True)
             y_ = np.hstack( ( y_, np.full(simMatched.shape[0],2) ) )
             n_[2] = simMatched.shape[0]
-
-            print('added %d of simMatched seeds' % n[2])
         if n[3] < cut:
             subset = subset.append(muMatched,ignore_index=True)
             y_ = np.hstack( ( y_, np.full(muMatched.shape[0],3) ) )
             n_[3] = muMatched.shape[0]
-
-            print('added %d of muMatched seeds' % n[3])
 
         full = full.append(subset, ignore_index=True)
         n += n_
@@ -108,7 +100,7 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
 
         full = preprocess.filterClass(full)
 
-    print('Total (notBuilt, combi, simMatched, muMatched) = (%d, %d, %d, %d) seeds added' % n[0], n[1], n[2], n[3])
+    print(treePath + ' (notBuilt, combi, simMatched, muMatched) = (%d, %d, %d, %d) seeds added' % (n[0], n[1], n[2], n[3]))
 
     return full, y
 
