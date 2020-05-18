@@ -58,7 +58,7 @@ def computeClassWgt(y, y_test):
         y_wgts = np.multiply(y_wgts,np.where(y==i,v,1.))
         ytest_wgts = np.multiply(ytest_wgts,np.where(y_test==i,v,1.))
 
-    return y_wgts, ytest_wgts
+    return y_wgts, ytest_wgts, wgts
 
 def getNclass(df):
     notBuilt = df[df['matchedTPsize']==-99999.]

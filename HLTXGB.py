@@ -19,7 +19,7 @@ def doXGB(seed,seedname,runname,doLoad):
     colname = list(seed[0].columns)
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
     x_train, x_test = preprocess.stdTransform(x_train, x_test)
-    y_wgtsTrain, y_wgtsTest = preprocess.computeClassWgt(y_train, y_test)
+    y_wgtsTrain, y_wgtsTest, wgts = preprocess.computeClassWgt(y_train, y_test)
 
     print(seedname + r' C0: %d, C1: %d, C2: %d, C3: %d' % ( (seed[1]==0).sum(), (seed[1]==1).sum(), (seed[1]==2).sum(), (seed[1]==3).sum() ) )
 
@@ -63,7 +63,7 @@ def doXGB(seed,seedname,runname,doLoad):
     gain = bst.get_score(importance_type='gain')
     cover = bst.get_score(importance_type='cover')
     vis.drawImportance(gain,cover,colname,runname+'_'+seedname+'_importance')
-    
+
     return
 
 def run(seedname):
