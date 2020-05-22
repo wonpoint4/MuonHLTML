@@ -18,16 +18,20 @@ import os
 gpu_id = sys.argv[1]
 os.environ["CUDA_VISIBLE_DEVICES"]=gpu_id
 
-from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
+from tensorflow.compat.v1 import ConfigProto
+from tensorflow.compat.v1 import InteractiveSession
+
+config = ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.2
-set_session(tf.Session(config=config))
+config.gpu_options.allow_growth = True
+session = InteractiveSession(config=config)
 
 def doMLP(seed,seedname,runname):
     colname = list(seed[0].columns)
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
     x_train, x_test = preprocess.stdTransform(x_train, x_test)
     y_wgtsTrain, y_wgtsTest, wgts = preprocess.computeClassWgt(y_train, y_test)
+    wgts = {i : wgts[i] for i in range(wgts.size)}
 
     y_trainOneHot = to_categorical(y_train)
     y_testOneHot = to_categorical(y_test)
@@ -49,8 +53,6 @@ def doMLP(seed,seedname,runname):
 
     predict_train = model.predict(x_train, batch_size=batchSize)
     predict_test = model.predict(x_test, batch_size=batchSize)
-
-    print(predict_train)
 
     labelTrain = postprocess.softmaxLabel(predict_train)
     labelTest = postprocess.softmaxLabel(predict_test)
