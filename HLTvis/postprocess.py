@@ -16,18 +16,19 @@ def maskTarget(x, y):
     return dfSig.values, dfBkg.values
 
 def calROC(dTrainPredict, dTestPredict, y_train, y_test):
-    fpr_Train, tpr_Train, thresholds = roc_curve(y_train, dTrainPredict)
+    fpr_Train, tpr_Train, thr_Train = roc_curve(y_train, dTrainPredict)
     AUC_Train = roc_auc_score(y_train, dTrainPredict)
 
-    fpr_Test, tpr_Test, thresholds = roc_curve(y_test, dTestPredict)
+    fpr_Test, tpr_Test, thr_Test = roc_curve(y_test, dTestPredict)
     AUC_Test = roc_auc_score(y_test, dTestPredict)
 
-    return fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test
+    return fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test
 
 def confMat(y,pred):
-    confMat_ = confusion_matrix(y,pred,normalize='true',labels=[0,1,2,3])
+    confMat_     = confusion_matrix(y,pred,normalize='true',labels=[0,1,2,3])
+    confMat_abs_ = confusion_matrix(y,pred,labels=[0,1,2,3])
 
-    return confMat_
+    return confMat_, confMat_abs_
 
 def softmaxLabel(predict):
     return np.argmax(predict, axis=1)

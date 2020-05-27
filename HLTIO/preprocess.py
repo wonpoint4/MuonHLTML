@@ -77,7 +77,23 @@ def filterClass(df):
 
 def stdTransform(x_train, x_test):
     Transformer = preprocessing.StandardScaler()
-    x_train = Transformer.fit_transform(x_train)
+    x_train     = Transformer.fit_transform(x_train)
+    x_test      = Transformer.transform(x_test)
+    mean        = Transformer.mean_
+    std         = Transformer.scale_
+
+    return x_train, x_test, mean, std
+
+def stdTransformFixed(x_train, x_test, stdTransPar):
+    means = np.asarray( stdTransPar[0] )
+    stds  = np.asarray( stdTransPar[1] )
+    x_dummy_m = (means - stds ).tolist()
+    x_dummy_p = (means + stds ).tolist()
+    x_dummy =  np.asarray( [x_dummy_m, x_dummy_p] )
+
+    Transformer = preprocessing.StandardScaler()
+    Transformer.fit(x_dummy)
+    x_train = Transformer.transform(x_train)
     x_test = Transformer.transform(x_test)
 
     return x_train, x_test

@@ -85,6 +85,57 @@ def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotn
 
     return
 
+def drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
+    plt.figure(figsize=(6,4))
+    plt.plot(fpr_Train, tpr_Train, color='r', label='Train ROC (AUC = %.4f)' % AUC_Train)
+    plt.plot(fpr_Test,  tpr_Test,  color='b', label='Test ROC (AUC = %.4f)' % AUC_Test)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    # plt.yscale('log')
+    # plt.ylim(ymin=1e-3, ymax=1.0)
+    plt.title(plotname)
+    plt.legend(loc='lower right')
+    plt.grid()
+
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def drawThr(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
+    plt.figure(figsize=(6,4))
+    plt.plot(thr_Train, 1 - tpr_Train, color='r', label='Train thr')
+    plt.plot(thr_Test,  1 - tpr_Test,  color='b', label='Test thr')
+    plt.xlabel('Threshold')
+    plt.ylabel('1 - True Positive Rate')
+    plt.yscale('log')
+    plt.xlim(xmin=0.0, xmax=1.0)
+    plt.ylim(ymin=1e-3, ymax=1.0)
+    plt.title(plotname)
+    plt.legend(loc='lower left')
+    plt.grid()
+
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
+    plt.figure(figsize=(6,4))
+    plt.plot(thr_Train, tpr_Train, color='r', label='Train thr')
+    plt.plot(thr_Test,  tpr_Test,  color='b', label='Test thr')
+    plt.xlabel('Threshold')
+    plt.ylabel('True Positive Rate')
+    plt.xlim(xmin=0.0, xmax=1.0)
+    plt.title(plotname)
+    plt.legend(loc='lower left')
+    plt.grid()
+
+    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
 def drawScore(dSigPredict, dBkgPredict, plotname):
     plt.figure(figsize=(6,4))
     plt.hist(dSigPredict, 100, normed=True, alpha=0.5, label='Sig', range=(0,1), color='b')
@@ -100,7 +151,7 @@ def drawScore(dSigPredict, dBkgPredict, plotname):
 
     return
 
-def drawConfMat(confMat, plotname):
+def drawConfMat(confMat, plotname, doNorm = True):
     # plt.figure(figsize=(6,4))
     fig, ax = plt.subplots()
     names = ['NotBuilt','Comb','Tracks','Muons']
@@ -117,18 +168,23 @@ def drawConfMat(confMat, plotname):
 
     for i in range(len(names)):
         for j in range(len(names)):
-            text = ax.text(j, i, r'{:.3f}'.format(confMat[i,j]), ha='center', va='center', color='w')
+            if doNorm:
+                text = ax.text(j, i, r'{:.3f}'.format(confMat[i,j]), ha='center', va='center', color='w')
+            else:
+                text = ax.text(j, i, r'{:.0f}'.format(confMat[i,j]), ha='center', va='center', color='w')
 
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
-def drawImportance(gain, cover, colname, plotname):
+def drawImportance(gain, cover, colname_full, plotname):
+    colname = [ col for col in colname_full if col in gain.keys() ]
+    valGain     = np.asarray( [ gain[x]  for x in colname ] )
+    sortedCover = np.asarray( [ cover[x] for x in colname ] )
+
     plt.figure(figsize=(6,4))
     barwidth = 0.4
-    valGain = np.asarray(list(gain.values()))
-    sortedCover = np.asarray([cover[x] for x in gain.keys()])
-    b1 = plt.barh(np.arange(len(gain))-barwidth/2., 100.*valGain/np.sum(valGain), barwidth, color='r', label='gain')
+    b1 = plt.barh(np.arange(len(gain)) -barwidth/2., 100.*valGain/np.sum(valGain),         barwidth, color='r', label='gain')
     b2 = plt.barh(np.arange(len(cover))+barwidth/2., 100.*sortedCover/np.sum(sortedCover), barwidth, color='b', label='cover')
-    plt.yticks(range(len(gain)), colname,fontsize=5)
+    plt.yticks(range(len(gain)), colname, fontsize=5)
     plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=5 )
 
     plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
