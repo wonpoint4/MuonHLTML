@@ -98,7 +98,8 @@ class Net(torch.nn.Module):
         self.conv2 = trackletGNN(9, 9, 9, 2)
         self.conv3 = trackletGNN(9, 4, 9, 2)
         self.flatten = nn.Flatten(start_dim=0)
-        self.linear = nn.Linear(24,4)
+        self.linear1 = nn.Linear(24,8)
+        self.linear2 = nn.Linear(8,4)
 
     def forward(self, data):
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
@@ -112,9 +113,12 @@ class Net(torch.nn.Module):
         x = self.conv3(x, edge_index, edge_attr)
         x = F.relu(x)
         x = F.dropout(x, training=self.training)
-        x = self.flatten(x) #TODO batch_size should be 1!
-        x = self.linear(x)
-        x = torch.reshape( x, (1, 4) )
+        x = x.view(-1,6*4)
+        x = self.linear1(x)
+        x = F.relu(x)
+        x = F.dropout(x, training=self.training)
+        x = self.linear2(x)
+        x = x.view(-1,4)
 
         return F.log_softmax(x, dim=1)
 
@@ -140,8 +144,8 @@ def train(train_loader,model,device,optimizer,wgts):
 def evaluate(loader,model,device):
     model.eval()
 
-    predictions = []
-    labels = []
+    predictions = np.array([]).reshape(0,4)
+    labels = np.array([]).reshape(0,)
 
     with torch.no_grad():
         for data in loader:
@@ -150,27 +154,55 @@ def evaluate(loader,model,device):
             pred = np.exp(model(data).detach().cpu().numpy())
 
             label = data.y.cpu().numpy()
-            predictions.append(pred)
-            labels.append(label)
+            predictions = np.vstack( ( predictions, pred ) )
+            labels = np.hstack( ( labels, label ) )
 
     return predictions, labels
 
 def GNN(data_list, y, seedname, runname):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    loader = DataLoader(data_list, batch_size=1, shuffle=True) #TODO batch_size should be 1!
+    x_train, x_test, y_train, y_test = preprocess.split(data_list, y)
+
+    train_loader = DataLoader(x_train, batch_size=32, shuffle=True)
+    test_loader = DataLoader(x_test, batch_size=32, shuffle=True)
     model = Net().to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-    y_wgtsTrain, y_wgtsTest, wgts = preprocess.computeClassWgt(y, y)
+    _, __, wgts = preprocess.computeClassWgt(y_train, y_test)
 
-    for epoch in range(3):
+    for epoch in range(100):
         print('Epoch = %d' % (epoch))
-        train(loader,model,device,optimizer,wgts)
+        train(train_loader,model,device,optimizer,wgts)
 
-    pred, lab = evaluate(loader,model,device)
+    pred_train, y_train = evaluate(train_loader,model,device)
+    pred_test, y_test = evaluate(test_loader,model,device)
 
-    print(pred)
-    print(lab)
+    lab_train = postprocess.softmaxLabel(pred_train)
+    lab_test = postprocess.softmaxLabel(pred_test)
+
+    for cat in range(4):
+        if ( np.asarray(y_train==cat,dtype=np.int).sum() < 2 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 2 ): continue
+
+        fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
+            pred_train[:,cat],
+            pred_test[:,cat],
+            np.asarray(y_train==cat,dtype=np.int),
+            np.asarray(y_test==cat, dtype=np.int)
+        )
+        vis.drawROC( fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_ROC1_cat%d' % cat)
+        vis.drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_ROC2_cat%d' % cat)
+        vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  runname+'_'+seedname+r'_Thr1_cat%d' % cat)
+        vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  runname+'_'+seedname+r'_Thr2_cat%d' % cat)
+
+    confMat, confMatAbs = postprocess.confMat(y_test,lab_test)
+    vis.drawConfMat(confMat,   runname+'_'+seedname+'_testConfMatNorm')
+    vis.drawConfMat(confMatAbs,runname+'_'+seedname+'_testConfMat', doNorm = False)
+
+    confMatTrain, confMatTrainAbs = postprocess.confMat(y_train,lab_train)
+    vis.drawConfMat(confMatTrain,   runname+'_'+seedname+'_trainConfMatNorm')
+    vis.drawConfMat(confMatTrainAbs,runname+'_'+seedname+'_trainConfMat', doNorm = False)
+
+    return
 
 def run(seedname, runname):
     doLoad = False
