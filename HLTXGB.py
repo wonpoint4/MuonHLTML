@@ -17,6 +17,8 @@ import os
 
 def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     plotdir = 'plot_'+version
+    if not os.path.isdir(plotdir):
+        os.makedirs(plotdir)
 
     colname = list(seed[0].columns)
     print(colname)
@@ -25,6 +27,8 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
 
     if stdTransPar==None:
         x_train, x_test, x_mean, x_std = preprocess.stdTransform(x_train, x_test)
+        if not os.path.isdir('scalefiles_'+version):
+            os.makedirs('scalefiles_'+version)
         with open("scalefiles_%s/%s_%s_scale.txt" % (version, tag, seedname), "w") as f_scale:
             f_scale.write( "%s_%s_%s_ScaleMean = %s\n" % (version, tag, seedname, str(x_mean.tolist())) )
             f_scale.write( "%s_%s_%s_ScaleStd  = %s\n" % (version, tag, seedname, str(x_std.tolist())) )
@@ -62,6 +66,8 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     if doLoad:
         bst.load_model('model_'+version+'/'+version+'_'+tag+'_'+seedname+'.model')
     else:
+        if not os.path.isdir('model_'+version):
+            os.makedirs('model_'+version)
         bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
         bst.save_model('model_'+version+'/'+version+'_'+tag+'_'+seedname+'.model')
 
@@ -111,14 +117,14 @@ def run_quick(seedname):
 
     tag = 'TESTEndcap'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,False)
-    doXGB('vTEST'seed,seedname,tag,doLoad)
+    doXGB('vTEST',seed,seedname,tag,doLoad)
 
 def run(version, seedname, tag):
     doLoad = False
     isB = ('Barrel' in tag)
 
-    # ntuple_path = '/home/msoh/MuonHLTML_forTest/data/ntuple_1-620.root'
-    ntuple_path = '/home/common/DY_seedNtuple_v20200510/ntuple_*.root'
+    ntuple_path = '/home/msoh/MuonHLTML_Run3/data/ntuple_81.root'
+    # ntuple_path = '/home/common/DY_seedNtuple_v20200510/ntuple_*.root'
 
     print("\n\nStart: %s|%s" % (seedname, tag))
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
@@ -127,7 +133,7 @@ def run(version, seedname, tag):
 
 VER = 'Run3v0'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
-seedlist = ['NThltIter0FromL1']
+seedlist = ['NThltIter2FromL1']
 taglist  = ['Barrel','Endcap']
 seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
 
@@ -136,6 +142,7 @@ if __name__ == '__main__':
     simplefilter(action='ignore', category=FutureWarning)
 
     run_quick('NThltIter2FromL1')
+
     # pool = multiprocessing.Pool(processes=14)
     # pool.starmap(run,seed_run_list)
     # pool.close()
