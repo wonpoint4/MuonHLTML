@@ -17,6 +17,7 @@ import os
 
 def doXGB(seed,seedname,runname,doLoad,stdTransPar=None):
     colname = list(seed[0].columns)
+    print(colname)
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
 
     if stdTransPar==None:
@@ -99,13 +100,13 @@ def doXGB(seed,seedname,runname,doLoad,stdTransPar=None):
 def run_quick(seedname):
     doLoad = False
 
-    ntuple_path = '/home/msoh/MuonHLTML_forTest/data/ntuple_1-620.root'
+    ntuple_path = '/home/msoh/MuonHLTML_Run3/data/ntuple_81.root'
 
-    runname = 'PU200Barrel'
+    runname = 'Run3v0Barrel'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,True)
     doXGB(seed,seedname,runname,doLoad)
 
-    runname = 'PU200Endcap'
+    runname = 'Run3v0Endcap'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,False)
     doXGB(seed,seedname,runname,doLoad)
 
@@ -121,19 +122,18 @@ def run(seedname, runname):
     doXGB(seed,seedname,runname,doLoad)
 
 
-# seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
-seedlist = ['NThltIter0FromL1']
-runlist  = ['PU200Barrel','PU200Endcap']
+seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
+runlist  = ['Run3v0Barrel','Run3v0Endcap']
 seed_run_list = [ (seed, run) for run in runlist for seed in seedlist ]
 
 if __name__ == '__main__':
     from warnings import simplefilter
     simplefilter(action='ignore', category=FutureWarning)
 
-    # run_quick('NThltIter2FromL1')
-    pool = multiprocessing.Pool(processes=14)
-    pool.starmap(run,seed_run_list)
-    pool.close()
-    pool.join()
+    run_quick('NThltIter2FromL1')
+    # pool = multiprocessing.Pool(processes=14)
+    # pool.starmap(run,seed_run_list)
+    # pool.close()
+    # pool.join()
 
 print('Finished')
