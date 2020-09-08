@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from HLTvis import postprocess
 
-def scatter2d(x, y, plotname):
+def scatter2d(x, y, plotname, dirname="plot"):
     sig, bkg = postprocess.maskTarget(x, y)
     plt.figure(figsize=(6,4))
     plt.scatter(bkg[:,0],bkg[:,1],c='r',label='bkg',alpha=0.1)
@@ -14,22 +14,22 @@ def scatter2d(x, y, plotname):
     plt.legend()
     plt.grid()
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
     return
 
-def scatter2dSB(sig, bkg, plotname):
+def scatter2dSB(sig, bkg, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.scatter(bkg[:,0],bkg[:,1],c='r',label='bkg',alpha=0.1)
     plt.scatter(sig[:,0],sig[:,1],c='b',label='sig',alpha=0.5)
     plt.legend()
     plt.grid()
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
     return
 
-def hist2d(idx,data, plotname):
+def hist2d(idx,data, plotname, dirname="plot"):
     if idx==0: cm=plt.cm.Reds
     if idx==1: cm=plt.cm.Oranges
     if idx==2: cm=plt.cm.Greens
@@ -38,12 +38,12 @@ def hist2d(idx,data, plotname):
     plt.hist2d(data[:,0], data[:,1], bins=100, cmap=cm)
     plt.colorbar()
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
-def hist2dOverlay(dataSig0,dataSig1,dataBkg0,dataBkg1,plotname):
+def hist2dOverlay(dataSig0,dataSig1,dataBkg0,dataBkg1,plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     cmapBlue = plt.cm.Blues(np.arange(plt.cm.Blues.N))
     cmapBlue[:,-1] = np.linspace(0, 0.8, plt.cm.Blues.N)
@@ -64,12 +64,12 @@ def hist2dOverlay(dataSig0,dataSig1,dataBkg0,dataBkg1,plotname):
     plt.hist2d(dataSig1[:,0], dataSig1[:,1], bins=100, cmap=cmapBlue, normed=True)
     # plt.colorbar()
     plt.draw()
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
-def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
+def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.plot(fpr_Train, 1-tpr_Train, color='r', label='Train ROC (AUC = %.4f)' % AUC_Train)
     plt.plot(fpr_Test, 1-tpr_Test, color='b', label='Test ROC (AUC = %.4f)' % AUC_Test)
@@ -81,11 +81,11 @@ def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotn
     plt.legend(loc='upper right')
     plt.grid()
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
     return
 
-def drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname):
+def drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.plot(fpr_Train, tpr_Train, color='r', label='Train ROC (AUC = %.4f)' % AUC_Train)
     plt.plot(fpr_Test,  tpr_Test,  color='b', label='Test ROC (AUC = %.4f)' % AUC_Test)
@@ -97,12 +97,12 @@ def drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plot
     plt.legend(loc='lower right')
     plt.grid()
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
-def drawThr(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
+def drawThr(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.plot(thr_Train, 1 - tpr_Train, color='r', label='Train thr')
     plt.plot(thr_Test,  1 - tpr_Test,  color='b', label='Test thr')
@@ -115,12 +115,12 @@ def drawThr(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
     plt.legend(loc='lower left')
     plt.grid()
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
-def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
+def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.plot(thr_Train, tpr_Train, color='r', label='Train thr')
     plt.plot(thr_Test,  tpr_Test,  color='b', label='Test thr')
@@ -131,12 +131,12 @@ def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname):
     plt.legend(loc='lower left')
     plt.grid()
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
     return
 
-def drawScore(dSigPredict, dBkgPredict, plotname):
+def drawScore(dSigPredict, dBkgPredict, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
     plt.hist(dSigPredict, 100, normed=True, alpha=0.5, label='Sig', range=(0,1), color='b')
     plt.hist(dBkgPredict, 100, normed=True, alpha=0.5, label='Bkg', range=(0,1), color='r')
@@ -147,11 +147,11 @@ def drawScore(dSigPredict, dBkgPredict, plotname):
     plt.ylabel('seeds(normed)/0.01')
     plt.legend(loc='upper right')
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
     return
 
-def drawConfMat(confMat, plotname, doNorm = True):
+def drawConfMat(confMat, plotname, dirname="plot", doNorm = True):
     # plt.figure(figsize=(6,4))
     fig, ax = plt.subplots()
     names = ['NotBuilt','Comb','Tracks','Muons']
@@ -173,9 +173,9 @@ def drawConfMat(confMat, plotname, doNorm = True):
             else:
                 text = ax.text(j, i, r'{:.0f}'.format(confMat[i,j]), ha='center', va='center', color='w')
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
 
-def drawImportance(gain, cover, colname_full, plotname):
+def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
     colname = [ col for col in colname_full if col in gain.keys() ]
     valGain     = np.asarray( [ gain[x]  for x in colname ] )
     sortedCover = np.asarray( [ cover[x] for x in colname ] )
@@ -187,4 +187,4 @@ def drawImportance(gain, cover, colname_full, plotname):
     plt.yticks(range(len(gain)), colname, fontsize=5)
     plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=5 )
 
-    plt.savefig('./plot/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
