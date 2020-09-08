@@ -73,6 +73,10 @@ def getNclass(df):
 def filterClass(df):
     df.drop(
         [
+            'mva0',
+            'mva1',
+            'mva2',
+            'mva3',
             'truePU',
             'dir',
             'tsos_detId',
