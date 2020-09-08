@@ -101,11 +101,11 @@ def run_quick(seedname):
 
     ntuple_path = '/home/msoh/MuonHLTML_forTest/data/ntuple_1-620.root'
 
-    runname = 'PU180to200Barrel'
+    runname = 'PU200Barrel'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,True)
     doXGB(seed,seedname,runname,doLoad)
 
-    runname = 'PU180to200Endcap'
+    runname = 'PU200Endcap'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,False)
     doXGB(seed,seedname,runname,doLoad)
 
@@ -121,8 +121,9 @@ def run(seedname, runname):
     doXGB(seed,seedname,runname,doLoad)
 
 
-seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
-runlist  = ['PU180to200Barrel','PU180to200Endcap']
+# seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
+seedlist = ['NThltIter0FromL1']
+runlist  = ['PU200Barrel','PU200Endcap']
 seed_run_list = [ (seed, run) for run in runlist for seed in seedlist ]
 
 if __name__ == '__main__':

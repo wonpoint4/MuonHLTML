@@ -71,7 +71,38 @@ def getNclass(df):
     return notBuilt, combi, simMatched, muMatched
 
 def filterClass(df):
-    df.drop(['truePU','dir','tsos_detId','tsos_pt','tsos_eta','tsos_phi','tsos_glob_x','tsos_glob_y','tsos_glob_z','tsos_pt_val','tsos_hasErr','tsos_x','tsos_y','tsos_px','tsos_py','tsos_pz','dR_minDRL1SeedP','dPhi_minDRL1SeedP','dR_minDPhiL1SeedX','dPhi_minDPhiL1SeedX','bestMatchTP_pdgId','matchedTPsize','gen_pt','gen_eta','gen_phi'], axis=1, inplace=True)
+    df.drop(
+        [
+            'truePU',
+            'dir',
+            'tsos_detId',
+            'tsos_pt',
+            'tsos_eta',
+            'tsos_phi',
+            'tsos_glob_x',
+            'tsos_glob_y',
+            'tsos_glob_z',
+            'tsos_pt_val',
+            'tsos_hasErr',
+            'tsos_x',
+            'tsos_y',
+            'tsos_px',
+            'tsos_py',
+            'tsos_pz',
+            'dR_minDRL1SeedP',
+            'dPhi_minDRL1SeedP',
+            'dR_minDPhiL1SeedX',
+            'dPhi_minDPhiL1SeedX',
+            'dR_L1TkMuSeedP',
+            'dPhi_L1TkMuSeedP',
+            'bestMatchTP_pdgId',
+            'matchedTPsize',
+            'gen_pt',
+            'gen_eta',
+            'gen_phi'
+            ], 
+        axis=1, inplace=True
+    )
 
     return df
 

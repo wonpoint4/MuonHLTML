@@ -51,7 +51,7 @@ def readSeedTree(path,treePath,minpt,maxpt,isB):
     tree = f.Get(treePath)
     df = treeToDf(tree)
     df = df[ df['truePU'] > 180. ]
-    df = df[ df['dR_L1TkMuSeedP'] >= 0. ]
+    # df = df[ df['dR_L1TkMuSeedP'] >= 0. ]
     df = df[ df['gen_pt'] < maxpt ]
     df = df[ df['gen_pt'] > minpt ]
     if isB:
