@@ -15,23 +15,26 @@ import os
 # gpu_id = '0' #sys.argv[1]
 # os.environ["CUDA_VISIBLE_DEVICES"]=gpu_id
 
-def doXGB(seed,seedname,runname,doLoad,stdTransPar=None):
+def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
+    plotdir = 'plot_'+version
+
     colname = list(seed[0].columns)
     print(colname)
+
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
 
     if stdTransPar==None:
         x_train, x_test, x_mean, x_std = preprocess.stdTransform(x_train, x_test)
-        with open("scalefiles/%s_%s_scale.txt" % (runname, seedname), "w") as f_scale:
-            f_scale.write( "%s_%s_ScaleMean = %s\n" % (runname, seedname, str(x_mean.tolist())) )
-            f_scale.write( "%s_%s_ScaleStd  = %s\n" % (runname, seedname, str(x_std.tolist())) )
+        with open("scalefiles_%s/%s_%s_scale.txt" % (version, tag, seedname), "w") as f_scale:
+            f_scale.write( "%s_%s_%s_ScaleMean = %s\n" % (version, tag, seedname, str(x_mean.tolist())) )
+            f_scale.write( "%s_%s_%s_ScaleStd  = %s\n" % (version, tag, seedname, str(x_std.tolist())) )
             f_scale.close()
     else:
         x_train, x_test = preprocess.stdTransformFixed(x_train, x_test, stdTransPar)
 
     y_wgtsTrain, y_wgtsTest, wgts = preprocess.computeClassWgt(y_train, y_test)
 
-    print(seedname+"|"+runname + r' C0: %d, C1: %d, C2: %d, C3: %d' % \
+    print(seedname+"|"+tag + r' C0: %d, C1: %d, C2: %d, C3: %d' % \
         ( (seed[1]==0).sum(), (seed[1]==1).sum(), (seed[1]==2).sum(), (seed[1]==3).sum() ) )
 
     dtrain = xgb.DMatrix(x_train, weight=y_wgtsTrain, label=y_train, feature_names=colname)
@@ -57,10 +60,10 @@ def doXGB(seed,seedname,runname,doLoad,stdTransPar=None):
     bst = xgb.Booster(param)
 
     if doLoad:
-        bst.load_model('model/'+runname+'_'+seedname+'.model')
+        bst.load_model('model_'+version+'/'+version+'_'+tag+'_'+seedname+'.model')
     else:
         bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
-        bst.save_model('model/'+runname+'_'+seedname+'.model')
+        bst.save_model('model_'+version+'/'+version+'_'+tag+'_'+seedname+'.model')
 
     dTrainPredict = bst.predict(dtrain)
     dTestPredict = bst.predict(dtest)
@@ -77,23 +80,23 @@ def doXGB(seed,seedname,runname,doLoad,stdTransPar=None):
             np.asarray(y_train==cat,dtype=np.int),
             np.asarray(y_test==cat, dtype=np.int)
         )
-        vis.drawROC( fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_ROC1_cat%d' % cat)
-        vis.drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, runname+'_'+seedname+r'_ROC2_cat%d' % cat)
-        vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  runname+'_'+seedname+r'_Thr1_cat%d' % cat)
-        vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  runname+'_'+seedname+r'_Thr2_cat%d' % cat)
+        vis.drawROC( fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, tag+'_'+seedname+r'_ROC1_cat%d' % cat, plotdir)
+        vis.drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, tag+'_'+seedname+r'_ROC2_cat%d' % cat, plotdir)
+        vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  tag+'_'+seedname+r'_Thr1_cat%d' % cat, plotdir)
+        vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  tag+'_'+seedname+r'_Thr2_cat%d' % cat, plotdir)
 
     confMat, confMatAbs = postprocess.confMat(y_test,labelTest)
-    vis.drawConfMat(confMat,   runname+'_'+seedname+'_testConfMatNorm')
-    vis.drawConfMat(confMatAbs,runname+'_'+seedname+'_testConfMat', doNorm = False)
+    vis.drawConfMat(confMat,   tag+'_'+seedname+'_testConfMatNorm', plotdir)
+    vis.drawConfMat(confMatAbs,tag+'_'+seedname+'_testConfMat', plotdir, doNorm = False)
 
     confMatTrain, confMatTrainAbs = postprocess.confMat(y_train,labelTrain)
-    vis.drawConfMat(confMatTrain,   runname+'_'+seedname+'_trainConfMatNorm')
-    vis.drawConfMat(confMatTrainAbs,runname+'_'+seedname+'_trainConfMat', doNorm = False)
+    vis.drawConfMat(confMatTrain,   tag+'_'+seedname+'_trainConfMatNorm', plotdir)
+    vis.drawConfMat(confMatTrainAbs,tag+'_'+seedname+'_trainConfMat', plotdir, doNorm = False)
 
     if not doLoad:
         gain = bst.get_score( importance_type='gain')
         cover = bst.get_score(importance_type='cover')
-        vis.drawImportance(gain,cover,colname,runname+'_'+seedname+'_importance')
+        vis.drawImportance(gain,cover,colname,tag+'_'+seedname+'_importance', plotdir)
 
     return
 
@@ -102,29 +105,31 @@ def run_quick(seedname):
 
     ntuple_path = '/home/msoh/MuonHLTML_Run3/data/ntuple_81.root'
 
-    runname = 'Run3v0Barrel'
+    tag = 'TESTBarrel'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,True)
-    doXGB(seed,seedname,runname,doLoad)
+    doXGB('vTEST',seed,seedname,tag,doLoad)
 
-    runname = 'Run3v0Endcap'
+    tag = 'TESTEndcap'
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,False)
-    doXGB(seed,seedname,runname,doLoad)
+    doXGB('vTEST'seed,seedname,tag,doLoad)
 
-def run(seedname, runname):
+def run(version, seedname, tag):
     doLoad = False
-    isB = ('Barrel' in runname)
+    isB = ('Barrel' in tag)
 
     # ntuple_path = '/home/msoh/MuonHLTML_forTest/data/ntuple_1-620.root'
     ntuple_path = '/home/common/DY_seedNtuple_v20200510/ntuple_*.root'
 
-    print("\n\nStart: %s|%s" % (seedname, runname))
+    print("\n\nStart: %s|%s" % (seedname, tag))
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
-    doXGB(seed,seedname,runname,doLoad)
+    doXGB(version, seed, seedname, tag, doLoad)
 
 
+VER = 'Run3v0'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
-runlist  = ['Run3v0Barrel','Run3v0Endcap']
-seed_run_list = [ (seed, run) for run in runlist for seed in seedlist ]
+seedlist = ['NThltIter0FromL1']
+taglist  = ['Barrel','Endcap']
+seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
 
 if __name__ == '__main__':
     from warnings import simplefilter
