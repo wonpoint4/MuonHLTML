@@ -50,8 +50,19 @@ def readSeedTree(path,treePath,minpt,maxpt,isB):
     f = ROOT.TFile.Open(path)
     tree = f.Get(treePath)
     df = treeToDf(tree)
+
     # df = df[ df['truePU'] > 180. ]
-    # df = df[ df['dR_L1TkMuSeedP'] >= 0. ]
+    # df = df[ df['dR_minDRL1SeedP_AtVtx']   >= 0. ]
+    # df = df[ df['dR_minDPhiL1SeedX_AtVtx'] >= 0. ]
+    # df = df[ df['dR_minDRL2SeedP']         >= 0. ]
+    # df = df[ df['dR_minDPhiL2SeedX']       >= 0. ]
+    # df = df[ df['dR_L1TkMuSeedP']          >= 0. ]
+    # df = df[ df['dR_minDRL1SeedP_AtVtx']   < 9999. ]
+    # df = df[ df['dR_minDPhiL1SeedX_AtVtx'] < 9999. ]
+    # df = df[ df['dR_minDRL2SeedP']         < 9999. ]
+    # df = df[ df['dR_minDPhiL2SeedX']       < 9999. ]
+    # df = df[ df['dR_L1TkMuSeedP']          < 9999. ]
+
     df = df[ df['gen_pt'] < maxpt ]
     df = df[ df['gen_pt'] > minpt ]
     if isB:
@@ -68,8 +79,9 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
     n = np.array([0,0,0,0])
     cut = 500000
 
+    nfile = 0
     for path in filelist:
-        print('Processing file %s...' % path)
+        print('Processing %dth file %s ...' % (nfile, path) )
         if np.all( n >= cut ):
             continue
 
@@ -100,7 +112,10 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
 
         full = preprocess.filterClass(full)
 
-    print(treePath + ' (notBuilt, combi, simMatched, muMatched) = (%d, %d, %d, %d) seeds added' % (n[0], n[1], n[2], n[3]))
+        nfile = nfile+1
+
+    print(treePath + ' | %d/%d files | (notBuilt, combi, simMatched, muMatched) = (%d, %d, %d, %d) seeds added' % \
+        (nfile, len(filelist), n[0], n[1], n[2], n[3]))
 
     return full, y
 

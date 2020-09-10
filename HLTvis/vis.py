@@ -15,6 +15,7 @@ def scatter2d(x, y, plotname, dirname="plot"):
     plt.grid()
     plt.draw()
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
@@ -26,6 +27,7 @@ def scatter2dSB(sig, bkg, plotname, dirname="plot"):
     plt.grid()
     plt.draw()
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
@@ -77,11 +79,12 @@ def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotn
     plt.ylabel('1 - True Positive Rate')
     plt.yscale('log')
     plt.ylim(ymin=1e-3, ymax=1.0)
-    plt.title(plotname)
+    plt.title(plotname, fontsize=8)
     plt.legend(loc='upper right')
     plt.grid()
 
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
@@ -93,7 +96,7 @@ def drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plot
     plt.ylabel('True Positive Rate')
     # plt.yscale('log')
     # plt.ylim(ymin=1e-3, ymax=1.0)
-    plt.title(plotname)
+    plt.title(plotname, fontsize=8)
     plt.legend(loc='lower right')
     plt.grid()
 
@@ -111,7 +114,7 @@ def drawThr(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname, dirname="plot"):
     plt.yscale('log')
     plt.xlim(xmin=0.0, xmax=1.0)
     plt.ylim(ymin=1e-3, ymax=1.0)
-    plt.title(plotname)
+    plt.title(plotname, fontsize=8)
     plt.legend(loc='lower left')
     plt.grid()
 
@@ -127,7 +130,7 @@ def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname, dirname="plot")
     plt.xlabel('Threshold')
     plt.ylabel('True Positive Rate')
     plt.xlim(xmin=0.0, xmax=1.0)
-    plt.title(plotname)
+    plt.title(plotname, fontsize=8)
     plt.legend(loc='lower left')
     plt.grid()
 
@@ -138,16 +141,37 @@ def drawThr2(thr_Train, tpr_Train, thr_Test, tpr_Test, plotname, dirname="plot")
 
 def drawScore(dSigPredict, dBkgPredict, plotname, dirname="plot"):
     plt.figure(figsize=(6,4))
-    plt.hist(dSigPredict, 100, normed=True, alpha=0.5, label='Sig', range=(0,1), color='b')
-    plt.hist(dBkgPredict, 100, normed=True, alpha=0.5, label='Bkg', range=(0,1), color='r')
+    plt.hist(dSigPredict, 100, density=True, alpha=0.5, label='Sig', range=(0,1), color='b')
+    plt.hist(dBkgPredict, 100, density=True, alpha=0.5, label='Bkg', range=(0,1), color='r')
     plt.grid()
-    # plt.yscale('log')
-    plt.title(plotname)
+    plt.yscale('log')
+    plt.xlim([0,1])
+    # plt.ylim([0,100])
+    plt.title(plotname, fontsize=8)
     plt.xlabel('Output')
-    plt.ylabel('seeds(normed)/0.01')
+    plt.ylabel('a.u.')
     plt.legend(loc='upper right')
 
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
+
+def drawScoreRaw(dSigPredict, dBkgPredict, plotname, dirname="plot"):
+    plt.figure(figsize=(6,4))
+    plt.hist(dSigPredict, 100, density=True, alpha=0.5, label='Sig', color='b')
+    plt.hist(dBkgPredict, 100, density=True, alpha=0.5, label='Bkg', color='r')
+    plt.grid()
+    plt.yscale('log')
+    # plt.xlim([0,1])
+    # plt.ylim([0,100])
+    plt.title(plotname, fontsize=8)
+    plt.xlabel('Output')
+    plt.ylabel('a.u.')
+    plt.legend(loc='upper right')
+
+    plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
 
     return
 
@@ -156,10 +180,14 @@ def drawConfMat(confMat, plotname, dirname="plot", doNorm = True):
     fig, ax = plt.subplots()
     names = ['NotBuilt','Comb','Tracks','Muons']
 
-    ax.imshow(confMat,cmap='viridis')
-    plt.title(plotname)
+    if doNorm:
+        mat = ax.imshow(confMat,cmap='viridis', vmin=0., vmax=1.)
+    else:
+        mat = ax.imshow(confMat,cmap='viridis')
+    plt.title(plotname, fontsize=8)
     plt.xlabel('prediction')
     plt.ylabel('true')
+    fig.colorbar(mat, ax=ax)
 
     ax.set_xticks(np.arange(len(names)))
     ax.set_yticks(np.arange(len(names)))
@@ -174,6 +202,9 @@ def drawConfMat(confMat, plotname, dirname="plot", doNorm = True):
                 text = ax.text(j, i, r'{:.0f}'.format(confMat[i,j]), ha='center', va='center', color='w')
 
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return
 
 def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
     colname = [ col for col in colname_full if col in gain.keys() ]
@@ -188,3 +219,6 @@ def drawImportance(gain, cover, colname_full, plotname, dirname="plot"):
     plt.legend( (b1[0],b2[0]), ('gain','cover'), fontsize=5 )
 
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
+    plt.close()
+
+    return

@@ -30,5 +30,10 @@ def confMat(y,pred):
 
     return confMat_, confMat_abs_
 
+def sigmoid( pred_raw ):
+    sigmoid_ = 1. / 1./(1.+np.exp(-1*pred_raw))
+
+    return sigmoid_
+
 def softmaxLabel(predict):
     return np.argmax(predict, axis=1)
