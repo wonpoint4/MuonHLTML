@@ -61,14 +61,19 @@ def computeClassWgt(y, y_test):
     return y_wgts, ytest_wgts, wgts
 
 def getNclass(df):
-    notBuilt = df[df['matchedTPsize']==-99999.]
-    combi = df[df['matchedTPsize']==0.]
-    simMatched = df[df['matchedTPsize']>0.].copy()
-    muMatched = df[ (df['bestMatchTP_pdgId']==13.) | (df['bestMatchTP_pdgId']==-13.) ]
+    #notBuilt = df[df['matchedTPsize']==-99999.]
+    #combi = df[df['matchedTPsize']==0.]
+    #simMatched = df[df['matchedTPsize']>0.].copy()
+    #muMatched = df[ (df['bestMatchTP_pdgId']==13.) | (df['bestMatchTP_pdgId']==-13.) ]
 
-    simMatched.drop(muMatched.index.values, inplace=True)
+    #simMatched.drop(muMatched.index.values, inplace=True)
 
-    return notBuilt, combi, simMatched, muMatched
+    #return notBuilt, combi, simMatched, muMatched
+    #return notBuilt+combi+simMatched, muMatched
+
+    sig = df[ (df['bestMatchTP_pdgId']==13.) | (df['bestMatchTP_pdgId']==-13.) ]
+    df.drop(sig.index.values, inplace=True)
+    return df, sig
 
 def filterClass(df):
     df.drop(
@@ -105,8 +110,8 @@ def filterClass(df):
             #'dPhi_minDRL1SeedP_AtVtx',
             'dR_minDPhiL1SeedX_AtVtx',
             'dPhi_minDPhiL1SeedX_AtVtx',
-            'dR_minDRL2SeedP',
-            'dPhi_minDRL2SeedP',
+            #'dR_minDRL2SeedP',
+            #'dPhi_minDRL2SeedP',
             'dR_minDPhiL2SeedX',
             'dPhi_minDPhiL2SeedX',
             'dR_L1TkMuSeedP',

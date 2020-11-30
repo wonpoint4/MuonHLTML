@@ -25,8 +25,10 @@ def calROC(dTrainPredict, dTestPredict, y_train, y_test):
     return fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test
 
 def confMat(y,pred):
-    confMat_     = confusion_matrix(y,pred,normalize='true',labels=[0,1,2,3])
-    confMat_abs_ = confusion_matrix(y,pred,labels=[0,1,2,3])
+    #confMat_     = confusion_matrix(y,pred,normalize='true',labels=[0,1,2,3])
+    #confMat_abs_ = confusion_matrix(y,pred,labels=[0,1,2,3])
+    confMat_     = confusion_matrix(y,pred,normalize='true',labels=[0,1])
+    confMat_abs_ = confusion_matrix(y,pred,labels=[0,1])
 
     return confMat_, confMat_abs_
 

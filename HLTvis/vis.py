@@ -178,7 +178,8 @@ def drawScoreRaw(dSigPredict, dBkgPredict, plotname, dirname="plot"):
 def drawConfMat(confMat, plotname, dirname="plot", doNorm = True):
     # plt.figure(figsize=(6,4))
     fig, ax = plt.subplots()
-    names = ['NotBuilt','Comb','Tracks','Muons']
+    #names = ['NotBuilt','Comb','Tracks','Muons']
+    names = ['Backgrounds','Muons']
 
     if doNorm:
         mat = ax.imshow(confMat,cmap='viridis', vmin=0., vmax=1.)
