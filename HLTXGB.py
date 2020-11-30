@@ -165,7 +165,7 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
 def run_quick(seedname):
     doLoad = False
 
-    ntuple_path = '/home/msoh/MuonHLTML_Run3/data/ntuple_81.root'
+    ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW/ntuple_*.root'
 
     tag = 'TESTBarrel'
     print("\n\nStart: %s|%s" % (seedname, tag))
@@ -176,7 +176,7 @@ def run_quick(seedname):
         scaleStd  = getattr(scalefile, version+"_"+tag+"_"+seedname+"_ScaleStd")
         stdTrans = [ scaleMean, scaleStd ]
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,True)
-    doXGB('vTEST',seed,seedname,tag,doLoad,stdTrans)
+    doXGB('vTEST_bigger',seed,seedname,tag,doLoad,stdTrans)
 
     tag = 'TESTEndcap'
     print("\n\nStart: %s|%s" % (seedname, tag))
@@ -193,7 +193,7 @@ def run(version, seedname, tag):
     doLoad = False
     isB = ('Barrel' in tag)
 
-    ntuple_path = '/home/msoh/MuonHLTML_Run3/data/ntuple_81.root'
+    ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW_L2Recover/ntuple_*.root'
     # ntuple_path = '/home/common/DY_seedNtuple_v20200510/ntuple_*.root'
 
     stdTrans = None
@@ -207,22 +207,23 @@ def run(version, seedname, tag):
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
     doXGB(version, seed, seedname, tag, doLoad, stdTrans)
 
-
-VER = 'Run3v0'
+VER = 'Run3v4'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
+seedlist = ['NThltIter2', 'NThltIter2FromL1']
 seedlist = ['NThltIter2FromL1']
 taglist  = ['Barrel','Endcap']
+
 seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
 
 if __name__ == '__main__':
     from warnings import simplefilter
     simplefilter(action='ignore', category=FutureWarning)
 
-    run_quick('NThltIter2FromL1')
+    #run_quick('NThltIter2FromL1')
 
-    # pool = multiprocessing.Pool(processes=14)
-    # pool.starmap(run,seed_run_list)
-    # pool.close()
-    # pool.join()
+    pool = multiprocessing.Pool(processes=14)
+    pool.starmap(run,seed_run_list)
+    pool.close()
+    pool.join()
 
 print('Finished')

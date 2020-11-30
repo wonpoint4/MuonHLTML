@@ -66,9 +66,9 @@ def readSeedTree(path,treePath,minpt,maxpt,isB):
     df = df[ df['gen_pt'] < maxpt ]
     df = df[ df['gen_pt'] > minpt ]
     if isB:
-        df = df[ ( (df['tsos_eta'] < 0.9) & (df['tsos_eta'] > -0.9) ) ]
+        df = df[ ( (df['tsos_eta'] < 1.2) & (df['tsos_eta'] > -1.2) ) ]
     else:
-        df = df[ ( (df['tsos_eta'] > 0.9) | (df['tsos_eta'] < -0.9) ) ]
+        df = df[ ( (df['tsos_eta'] > 1.2) | (df['tsos_eta'] < -1.2) ) ]
 
     return preprocess.getNclass(df)
 
