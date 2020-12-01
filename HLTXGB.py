@@ -50,13 +50,18 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     evallist = [(dtest, 'eval'), (dtrain, 'train')]
     param = {
         'max_depth':6,
-        'eta':0.1,
+        'eta':0.01,
         'gamma':10,
-        'objective':'multi:softprob',
+        'objective':'binary:logistic',
+        #'eval_metric':'logloss',
+	'eval_metric':'error@0.34',
+        #'max_depth':6,
+        #'eta':0.1,
+        #'gamma':10,
+        #'objective':'multi:softprob',
         #'num_class': 4,
-        'num_class': 2,
+        #'eval_metric':'mlogloss',
         'subsample':0.5,
-        'eval_metric':'mlogloss',
         'lambda':2.5
     }
     param['min_child_weight'] = np.sum(y_wgtsTrain)/50.
@@ -71,6 +76,10 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
         bst.load_model('model/'+version+'_'+tag+'_'+seedname+'.model')
     else:
         bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
+        param = { 'eval_metric' : 'error@0.001', 'eta':0.02 }
+        num_round = 2000
+        print("Change eval_metric, and training once more")
+        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=200, verbose_eval=100)
         bst.save_model('model/'+version+'_'+tag+'_'+seedname+'.model')
 
     dTrainPredict    = bst.predict(dtrain)
@@ -79,18 +88,23 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     dTrainPredictRaw = bst.predict(dtrain, output_margin=True)
     dTestPredictRaw  = bst.predict(dtest,  output_margin=True)
 
-    labelTrain       = postprocess.softmaxLabel(dTrainPredict)
-    labelTest        = postprocess.softmaxLabel(dTestPredict)
-
+    #labelTrain       = postprocess.softmaxLabel(dTrainPredict)
+    #labelTest        = postprocess.softmaxLabel(dTestPredict)
+    labelTrain       = postprocess.binaryLabel(dTrainPredict)
+    labelTest        = postprocess.binaryLabel(dTestPredict)
+    #print(dTestPredict)
+    #print(labelTest)
     # -- ROC -- #
     #for cat in range(4):
-    for cat in range(2):
+    for cat in range(1,2):
         #if ( np.asarray(y_train==cat,dtype=np.int).sum() < 2 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 2 ): continue
         if ( np.asarray(y_train==cat,dtype=np.int).sum() < 1 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 1 ): continue
 
         fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
-            dTrainPredict[:,cat],
-            dTestPredict[:,cat],
+            #dTrainPredict[:,cat],
+            #dTestPredict[:,cat],
+            dTrainPredict,
+            dTestPredict,
             np.asarray(y_train==cat,dtype=np.int),
             np.asarray(y_test==cat, dtype=np.int)
         )
@@ -99,12 +113,12 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
         vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_logThr_cat%d' % cat, plotdir)
         vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_linThr_cat%d' % cat, plotdir)
 
-        fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
-            postprocess.sigmoid( dTrainPredictRaw[:,cat] ),
-            postprocess.sigmoid( dTestPredictRaw[:,cat] ),
-            np.asarray(y_train==cat,dtype=np.int),
-            np.asarray(y_test==cat, dtype=np.int)
-        )
+        #fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
+        #    postprocess.sigmoid( dTrainPredictRaw[:,cat] ),
+        #    postprocess.sigmoid( dTestPredictRaw[:,cat] ),
+        #    np.asarray(y_train==cat,dtype=np.int),
+        #    np.asarray(y_test==cat, dtype=np.int)
+        #)
         #vis.drawROC( fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, version+'_'+tag+'_'+seedname+r'_logROCSigm_cat%d' % cat, plotdir)
         #vis.drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, version+'_'+tag+'_'+seedname+r'_linROCSigm_cat%d' % cat, plotdir)
         #vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_logThrSigm_cat%d' % cat, plotdir)
@@ -156,16 +170,16 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
     vis.drawScoreRaw(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw_cat3', plotdir)
     '''
-    TrainScoreCat = dTrainPredict[:,1]
-    TestScoreCat  = dTestPredict[:,1]
+    TrainScoreCat = dTrainPredict
+    TestScoreCat  = dTestPredict
 
     TrainScoreCatSig = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]==1 ] )
     TrainScoreCatBkg = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]!=1 ] )
-    vis.drawScore(TrainScoreCatSig, TrainScoreCatBkg, version+'_'+tag+'_'+seedname+r'_trainScore_cat', plotdir)
+    vis.drawScore(TrainScoreCatSig, TrainScoreCatBkg, version+'_'+tag+'_'+seedname+r'_trainScore', plotdir)
 
     TestScoreCatSig = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]==1 ] )
     TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
-    vis.drawScore(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScore_cat', plotdir)
+    vis.drawScore(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScore', plotdir)
 
     #TrainScoreCat = postprocess.sigmoid( dTrainPredictRaw[:,1] )
     #TestScoreCat  = postprocess.sigmoid( dTestPredictRaw[:,1] )
@@ -178,16 +192,16 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     #TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
     #vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreSigm_cat3', plotdir)
 
-    TrainScoreCat = dTrainPredictRaw[:,1]
-    TestScoreCat  = dTestPredictRaw[:,1]
+    TrainScoreCat = dTrainPredictRaw
+    TestScoreCat  = dTestPredictRaw
 
     TrainScoreCatSig = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]==1 ] )
     TrainScoreCatBkg = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]!=1 ] )
-    vis.drawScoreRaw(TrainScoreCatSig, TrainScoreCatBkg, version+'_'+tag+'_'+seedname+r'_trainScoreRaw_cat', plotdir)
+    vis.drawScoreRaw(TrainScoreCatSig, TrainScoreCatBkg, version+'_'+tag+'_'+seedname+r'_trainScoreRaw', plotdir)
 
     TestScoreCatSig = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]==1 ] )
     TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
-    vis.drawScoreRaw(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw_cat', plotdir)
+    vis.drawScoreRaw(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw', plotdir)
     # -- #
 
     # -- Importance -- #
@@ -244,11 +258,11 @@ def run(version, seedname, tag):
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
     doXGB(version, seed, seedname, tag, doLoad, stdTrans)
 
-VER = 'Run3v5_2'
+VER = 'Run3v5'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
 seedlist = ['NThltIter2', 'NThltIter2FromL1']
-seedlist = ['NThltIter2']#FromL1']
-taglist  = ['Barrel','Endcap']
+seedlist = ['NThltIter2FromL1']
+taglist  = ['Barrel', 'Endcap']
 
 seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
 

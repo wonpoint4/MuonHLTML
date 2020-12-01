@@ -123,7 +123,9 @@ def readMinSeeds(dir,treePath,minpt,maxpt,isB):
 
     #print(treePath + ' | %d/%d files | (notBuilt, combi, simMatched, muMatched) = (%d, %d, %d, %d) seeds added' % \
     #    (nfile, len(filelist), n[0], n[1], n[2], n[3]))
-    print(treePath + ' | %d/%d files | (notBuilt + combi + simMatched, muMatched) = (%d, %d) seeds added' %(nfile, len(filelist), n[0], n[1]))
+    if(isB) : tag = 'Barrel'
+    else : tag = 'Endcap'
+    print(tag+' : '+treePath + ' | %d/%d files | (notBuilt + combi + simMatched, muMatched) = (%d, %d) seeds added' %(nfile, len(filelist), n[0], n[1]))
     return full, y
 
 def dumpsvm(x, y, filename):

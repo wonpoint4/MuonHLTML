@@ -39,3 +39,6 @@ def sigmoid( pred_raw ):
 
 def softmaxLabel(predict):
     return np.argmax(predict, axis=1)
+
+def binaryLabel(predict):
+    return np.around(predict)

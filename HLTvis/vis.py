@@ -83,6 +83,9 @@ def drawROC(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, plotn
     plt.legend(loc='upper right')
     plt.grid()
 
+    if 'Barrel' in plotname: isB = 'Barrel'
+    else : isB = 'Endcap'
+    print(isB+' : Train(Test) AUC = %.4f,(%.4f) ' % (AUC_Train, AUC_Test))
     plt.savefig('./'+dirname+'/'+plotname+'.png',dpi=300, bbox_inches='tight')
     plt.close()
 
