@@ -75,7 +75,7 @@ def getNclass(df):
     df.drop(sig.index.values, inplace=True)
     return df, sig
 
-def filterClass(df):
+def filterClass(df, isL1):
     df.drop(
         [
             'mva0',
@@ -110,8 +110,8 @@ def filterClass(df):
             #'dPhi_minDRL1SeedP_AtVtx',
             'dR_minDPhiL1SeedX_AtVtx',
             'dPhi_minDPhiL1SeedX_AtVtx',
-            'dR_minDRL2SeedP',
-            'dPhi_minDRL2SeedP',
+            #'dR_minDRL2SeedP',
+            #'dPhi_minDRL2SeedP',
             'dR_minDPhiL2SeedX',
             'dPhi_minDPhiL2SeedX',
             'dR_L1TkMuSeedP',
@@ -139,6 +139,15 @@ def filterClass(df):
             ], 
         axis=1, inplace=True
     )
+
+    if isL1:
+        df.drop(
+            [
+            'dR_minDRL2SeedP',
+            'dPhi_minDRL2SeedP',
+            ],
+            axis=1, inplace=True
+        )
 
     return df
 

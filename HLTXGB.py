@@ -49,37 +49,31 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
 
     evallist = [(dtest, 'eval'), (dtrain, 'train')]
     param = {
-        'max_depth':6,
-        'eta':0.01,
+        'max_depth':10,
+        'eta':0.1,
         'gamma':10,
+        'subsample':0.5,
+        'lambda':2.5,
         'objective':'binary:logistic',
         #'eval_metric':'logloss',
-	'eval_metric':'error@0.34',
-        #'max_depth':6,
-        #'eta':0.1,
-        #'gamma':10,
-        #'objective':'multi:softprob',
-        #'num_class': 4,
-        #'eval_metric':'mlogloss',
-        'subsample':0.5,
-        'lambda':2.5
+	'eval_metric':'error@0.34'
     }
     param['min_child_weight'] = np.sum(y_wgtsTrain)/50.
     param['tree_method'] = 'exact'
     param['nthread'] = 4
 
-    num_round = 500
+    num_round = 2000
 
     bst = xgb.Booster(param)
 
     if doLoad:
         bst.load_model('model/'+version+'_'+tag+'_'+seedname+'.model')
     else:
-        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=50, verbose_eval=100)
-        param = { 'eval_metric' : 'error@0.001', 'eta':0.02 }
+        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=150, verbose_eval=100)
+        param = { 'eta':0.03, 'gamma':1.5, 'eval_metric' : 'error@0.01', 'subsample':0.9, 'colsample_bytree':0.9, 'alpha':1, 'lambda':100, 'max_depth':10, 'min_child_weight':1 }
         num_round = 2000
         print("Change eval_metric, and training once more")
-        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=200, verbose_eval=100)
+        bst = xgb.train(param, dtrain, num_round, evallist, early_stopping_rounds=150, verbose_eval=100)
         bst.save_model('model/'+version+'_'+tag+'_'+seedname+'.model')
 
     dTrainPredict    = bst.predict(dtrain)
@@ -139,33 +133,25 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     '''
     TrainScoreCat3 = dTrainPredict[:,3]
     TestScoreCat3  = dTestPredict[:,3]
-
     TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
     TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
     vis.drawScore(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScore_cat3', plotdir)
-
     TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
     TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
     vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScore_cat3', plotdir)
-
     TrainScoreCat3 = postprocess.sigmoid( dTrainPredictRaw[:,3] )
     TestScoreCat3  = postprocess.sigmoid( dTestPredictRaw[:,3] )
-
     TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
     TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
     vis.drawScore(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScoreSigm_cat3', plotdir)
-
     TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
     TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
     vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreSigm_cat3', plotdir)
-
     TrainScoreCat3 = dTrainPredictRaw[:,3]
     TestScoreCat3  = dTestPredictRaw[:,3]
-
     TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
     TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
     vis.drawScoreRaw(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScoreRaw_cat3', plotdir)
-
     TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
     TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
     vis.drawScoreRaw(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw_cat3', plotdir)
@@ -202,6 +188,18 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     TestScoreCatSig = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]==1 ] )
     TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
     vis.drawScoreRaw(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw', plotdir)
+
+    TrainScoreCat = postprocess.sigmoid( dTrainPredictRaw )
+    TestScoreCat  = postprocess.sigmoid( dTestPredictRaw )
+
+    TrainScoreCatSig = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]==1 ] )
+    TrainScoreCatBkg = np.array( [ score for i, score in enumerate(TrainScoreCat) if y_train[i]!=1 ] )
+    vis.drawScore(TrainScoreCatSig, TrainScoreCatBkg, version+'_'+tag+'_'+seedname+r'_trainScoreRawSigm', plotdir)
+
+    TestScoreCatSig = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]==1 ] )
+    TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
+    vis.drawScore(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScoreRawSigm', plotdir)
+
     # -- #
 
     # -- Importance -- #
@@ -241,7 +239,7 @@ def run_quick(seedname):
     doXGB('vTEST',seed,seedname,tag,doLoad)
     '''
 def run(version, seedname, tag):
-    doLoad = False
+    doLoad = True
     isB = ('Barrel' in tag)
 
     ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW_L2Recover/ntuple_*.root'
@@ -249,7 +247,7 @@ def run(version, seedname, tag):
 
     stdTrans = None
     if doLoad:
-        scalefile = importlib.import_module("scalefiles."+tag+"_"+seedname+"_scale")
+        scalefile = importlib.import_module("scalefiles."+version+"_"+tag+"_"+seedname+"_scale")
         scaleMean = getattr(scalefile, version+"_"+tag+"_"+seedname+"_ScaleMean")
         scaleStd  = getattr(scalefile, version+"_"+tag+"_"+seedname+"_ScaleStd")
         stdTrans = [ scaleMean, scaleStd ]
@@ -258,10 +256,10 @@ def run(version, seedname, tag):
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
     doXGB(version, seed, seedname, tag, doLoad, stdTrans)
 
-VER = 'Run3v5'
+VER = 'Run3v6_dep10'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
 seedlist = ['NThltIter2', 'NThltIter2FromL1']
-seedlist = ['NThltIter2FromL1']
+#seedlist = ['NThltIter2FromL1']
 taglist  = ['Barrel', 'Endcap']
 
 seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
@@ -272,7 +270,7 @@ if __name__ == '__main__':
 
     #run_quick('NThltIter2FromL1')
 
-    pool = multiprocessing.Pool(processes=14)
+    pool = multiprocessing.Pool(processes=20)#14)
     pool.starmap(run,seed_run_list)
     pool.close()
     pool.join()
