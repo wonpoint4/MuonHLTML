@@ -9,6 +9,7 @@ from scipy import sparse
 from pathlib import Path
 import math
 import pandas as pd
+import json
 
 # IO (Require ROOT version > 6.14)
 def dR(eta1, phi1, eta2, phi2):
@@ -166,5 +167,12 @@ def maketest(mu,sigma,name):
         tree.Fill()
     testfile.Write()
     testfile.Close()
+
+    return
+
+def print_params(string, param_json):
+    print(string)
+    params = json.loads(param_json)
+    print(json.dumps(params, indent=4, sort_keys=True))
 
     return
