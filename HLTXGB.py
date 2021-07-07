@@ -11,10 +11,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import importlib
-
+import pickle
 import os
-# gpu_id = '0' #sys.argv[1]
-# os.environ["CUDA_VISIBLE_DEVICES"]=gpu_id
 
 def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     plotdir = 'plot_'+version
@@ -23,8 +21,6 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
 
     colname = list(seed[0].columns)
     print(colname)
-    #print(seedname+"|"+tag + r' C0: %d, C1: %d, C2: %d, C3: %d' % \
-    #    ( (seed[1]==0).sum(), (seed[1]==1).sum(), (seed[1]==2).sum(), (seed[1]==3).sum() ) )
     print(seedname+"|"+tag + r' C0: %d, C1: %d' %( (seed[1]==0).sum(), (seed[1]==1).sum() ) )
 
     x_train, x_test, y_train, y_test = preprocess.split(seed[0], seed[1])
@@ -82,21 +78,15 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     dTrainPredictRaw = bst.predict(dtrain, output_margin=True)
     dTestPredictRaw  = bst.predict(dtest,  output_margin=True)
 
-    #labelTrain       = postprocess.softmaxLabel(dTrainPredict)
-    #labelTest        = postprocess.softmaxLabel(dTestPredict)
     labelTrain       = postprocess.binaryLabel(dTrainPredict)
     labelTest        = postprocess.binaryLabel(dTestPredict)
     #print(dTestPredict)
     #print(labelTest)
     # -- ROC -- #
-    #for cat in range(4):
     for cat in range(1,2):
-        #if ( np.asarray(y_train==cat,dtype=np.int).sum() < 2 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 2 ): continue
         if ( np.asarray(y_train==cat,dtype=np.int).sum() < 1 ) or ( np.asarray(y_test==cat,dtype=np.int).sum() < 1 ): continue
 
         fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
-            #dTrainPredict[:,cat],
-            #dTestPredict[:,cat],
             dTrainPredict,
             dTestPredict,
             np.asarray(y_train==cat,dtype=np.int),
@@ -107,18 +97,6 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
         vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_logThr_cat%d' % cat, plotdir)
         vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_linThr_cat%d' % cat, plotdir)
 
-        #fpr_Train, tpr_Train, thr_Train, AUC_Train, fpr_Test, tpr_Test, thr_Test, AUC_Test = postprocess.calROC(
-        #    postprocess.sigmoid( dTrainPredictRaw[:,cat] ),
-        #    postprocess.sigmoid( dTestPredictRaw[:,cat] ),
-        #    np.asarray(y_train==cat,dtype=np.int),
-        #    np.asarray(y_test==cat, dtype=np.int)
-        #)
-        #vis.drawROC( fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, version+'_'+tag+'_'+seedname+r'_logROCSigm_cat%d' % cat, plotdir)
-        #vis.drawROC2(fpr_Train, tpr_Train, AUC_Train, fpr_Test, tpr_Test, AUC_Test, version+'_'+tag+'_'+seedname+r'_linROCSigm_cat%d' % cat, plotdir)
-        #vis.drawThr(  thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_logThrSigm_cat%d' % cat, plotdir)
-        #vis.drawThr2( thr_Train, tpr_Train, thr_Test, tpr_Test,  version+'_'+tag+'_'+seedname+r'_linThrSigm_cat%d' % cat, plotdir)
-    # -- ROC -- #
-
     # -- Confusion matrix -- #
     confMat, confMatAbs = postprocess.confMat(y_test,labelTest)
     vis.drawConfMat(confMat,   version+'_'+tag+'_'+seedname+'_testConfMatNorm', plotdir)
@@ -127,35 +105,8 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     confMatTrain, confMatTrainAbs = postprocess.confMat(y_train,labelTrain)
     vis.drawConfMat(confMatTrain,   version+'_'+tag+'_'+seedname+'_trainConfMatNorm', plotdir)
     vis.drawConfMat(confMatTrainAbs,version+'_'+tag+'_'+seedname+'_trainConfMat', plotdir, doNorm = False)
-    # -- #
 
     # -- Score -- #
-    '''
-    TrainScoreCat3 = dTrainPredict[:,3]
-    TestScoreCat3  = dTestPredict[:,3]
-    TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
-    TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
-    vis.drawScore(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScore_cat3', plotdir)
-    TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
-    TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
-    vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScore_cat3', plotdir)
-    TrainScoreCat3 = postprocess.sigmoid( dTrainPredictRaw[:,3] )
-    TestScoreCat3  = postprocess.sigmoid( dTestPredictRaw[:,3] )
-    TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
-    TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
-    vis.drawScore(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScoreSigm_cat3', plotdir)
-    TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
-    TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
-    vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreSigm_cat3', plotdir)
-    TrainScoreCat3 = dTrainPredictRaw[:,3]
-    TestScoreCat3  = dTestPredictRaw[:,3]
-    TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
-    TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
-    vis.drawScoreRaw(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScoreRaw_cat3', plotdir)
-    TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
-    TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
-    vis.drawScoreRaw(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreRaw_cat3', plotdir)
-    '''
     TrainScoreCat = dTrainPredict
     TestScoreCat  = dTestPredict
 
@@ -166,17 +117,6 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     TestScoreCatSig = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]==1 ] )
     TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
     vis.drawScore(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScore', plotdir)
-
-    #TrainScoreCat = postprocess.sigmoid( dTrainPredictRaw[:,1] )
-    #TestScoreCat  = postprocess.sigmoid( dTestPredictRaw[:,1] )
-
-    #TrainScoreCat3Sig = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]==3 ] )
-    #TrainScoreCat3Bkg = np.array( [ score for i, score in enumerate(TrainScoreCat3) if y_train[i]!=3 ] )
-    #vis.drawScore(TrainScoreCat3Sig, TrainScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_trainScoreSigm_cat3', plotdir)
-
-    #TestScoreCat3Sig = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]==3 ] )
-    #TestScoreCat3Bkg = np.array( [ score for i, score in enumerate(TestScoreCat3) if y_test[i]!=3 ] )
-    #vis.drawScore(TestScoreCat3Sig, TestScoreCat3Bkg, version+'_'+tag+'_'+seedname+r'_testScoreSigm_cat3', plotdir)
 
     TrainScoreCat = dTrainPredictRaw
     TestScoreCat  = dTestPredictRaw
@@ -200,14 +140,11 @@ def doXGB(version, seed, seedname, tag, doLoad, stdTransPar=None):
     TestScoreCatBkg = np.array( [ score for i, score in enumerate(TestScoreCat) if y_test[i]!=1 ] )
     vis.drawScore(TestScoreCatSig, TestScoreCatBkg, version+'_'+tag+'_'+seedname+r'_testScoreRawSigm', plotdir)
 
-    # -- #
-
     # -- Importance -- #
     if not doLoad:
         gain = bst.get_score( importance_type='gain')
         cover = bst.get_score(importance_type='cover')
         vis.drawImportance(gain,cover,colname,version+'_'+tag+'_'+seedname+'_importance', plotdir)
-    # -- #
 
     return
 
@@ -226,24 +163,13 @@ def run_quick(seedname):
         stdTrans = [ scaleMean, scaleStd ]
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,True)
     doXGB('vTEST',seed,seedname,tag,doLoad,stdTrans)
-    '''
-    tag = 'TESTEndcap'
-    print("\n\nStart: %s|%s" % (seedname, tag))
-    stdTrans = None
-    if doLoad:
-        scalefile = importlib.import_module("scalefiles."+tag+"_"+seedname+"_scale")
-        scaleMean = getattr(scalefile, version+"_"+tag+"_"+seedname+"_ScaleMean")
-        scaleStd  = getattr(scalefile, version+"_"+tag+"_"+seedname+"_ScaleStd")
-        stdTrans = [ scaleMean, scaleStd ]
-    seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,False)
-    doXGB('vTEST',seed,seedname,tag,doLoad)
-    '''
+
 def run(version, seedname, tag):
     doLoad = False
     isB = ('Barrel' in tag)
 
-    ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW_L2Recover/ntuple_*.root'
-    #ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW/ntuple_*.root'
+    ntuple_path = '/home/wjun/MuonHLTML/data/v2_RAW/ntuple_*.root'
+    ntuple_path = '/home/wjun/MuonHLTML/data/*.pkl' # If there is pre-defined pickles from root files, using these is much faster
 
     stdTrans = None
     if doLoad:
@@ -256,10 +182,9 @@ def run(version, seedname, tag):
     seed = IO.readMinSeeds(ntuple_path, 'seedNtupler/'+seedname, 0.,99999.,isB)
     doXGB(version, seed, seedname, tag, doLoad, stdTrans)
 
-VER = 'Run3v6'
+VER = 'Run3v6_test'
 seedlist = ['NThltIterL3OI','NThltIter0','NThltIter2','NThltIter3','NThltIter0FromL1','NThltIter2FromL1','NThltIter3FromL1']
 seedlist = ['NThltIter2', 'NThltIter2FromL1']
-#seedlist = ['NThltIter2FromL1']
 taglist  = ['Barrel', 'Endcap']
 
 seed_run_list = [ (VER, seed, tag) for tag in taglist for seed in seedlist ]
